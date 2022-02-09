@@ -14,7 +14,8 @@ enum class InternalLedgerEntryType
 {
     LEDGER_ENTRY,
     SPONSORSHIP,
-    SPONSORSHIP_COUNTER
+    SPONSORSHIP_COUNTER,
+    ASSET_AMOUNT_ISSUED,
 };
 
 struct SponsorshipKey
@@ -27,6 +28,11 @@ struct SponsorshipCounterKey
     AccountID sponsoringID;
 };
 
+struct AssetAmountIssuedKey
+{
+    Asset asset;
+};
+
 class InternalLedgerKey
 {
   private:
@@ -37,6 +43,7 @@ class InternalLedgerKey
         LedgerKey mLedgerKey;
         SponsorshipKey mSponsorshipKey;
         SponsorshipCounterKey mSponsorshipCounterKey;
+        AssetAmountIssuedKey mAssetAmountIssuedKey;
     };
 
     void assign(InternalLedgerKey const& glk);
@@ -50,11 +57,14 @@ class InternalLedgerKey
     LedgerKey& ledgerKeyRef();
     SponsorshipKey& sponsorshipKeyRef();
     SponsorshipCounterKey& sponsorshipCounterKeyRef();
+    AssetAmountIssuedKey& assetAmountIssuedKeyRef();
 
   public:
     static InternalLedgerKey makeSponsorshipKey(AccountID const& sponsoredId);
     static InternalLedgerKey
     makeSponsorshipCounterKey(AccountID const& sponsoringId);
+    static InternalLedgerKey
+    makeAssetAmountIssuedKey(Asset const& asset);
 
     InternalLedgerKey();
     explicit InternalLedgerKey(InternalLedgerEntryType t);
@@ -62,6 +72,7 @@ class InternalLedgerKey
     InternalLedgerKey(LedgerKey const& lk);
     explicit InternalLedgerKey(SponsorshipKey const& sk);
     explicit InternalLedgerKey(SponsorshipCounterKey const& sck);
+    explicit InternalLedgerKey(AssetAmountIssuedKey const& aik);
 
     InternalLedgerKey(InternalLedgerKey const& glk);
     InternalLedgerKey(InternalLedgerKey&& glk);
@@ -78,6 +89,8 @@ class InternalLedgerKey
     SponsorshipKey const& sponsorshipKey() const;
 
     SponsorshipCounterKey const& sponsorshipCounterKey() const;
+
+    AssetAmountIssuedKey const& assetAmountIssuedKey() const;
 
     std::string toString() const;
 
@@ -96,6 +109,12 @@ struct SponsorshipCounterEntry
     int64_t numSponsoring;
 };
 
+struct AssetAmountIssuedEntry
+{
+    Asset asset;
+    int64_t amount;
+};
+
 class InternalLedgerEntry
 {
   private:
@@ -105,6 +124,7 @@ class InternalLedgerEntry
         LedgerEntry mLedgerEntry;
         SponsorshipEntry mSponsorshipEntry;
         SponsorshipCounterEntry mSponsorshipCounterEntry;
+        AssetAmountIssuedEntry mAssetAmountIssuedEntry;
     };
 
     void assign(InternalLedgerEntry const& gle);
@@ -121,6 +141,7 @@ class InternalLedgerEntry
     InternalLedgerEntry(LedgerEntry const& le);
     explicit InternalLedgerEntry(SponsorshipEntry const& se);
     explicit InternalLedgerEntry(SponsorshipCounterEntry const& sce);
+    explicit InternalLedgerEntry(AssetAmountIssuedEntry const& aie);
 
     InternalLedgerEntry(InternalLedgerEntry const& gle);
     InternalLedgerEntry(InternalLedgerEntry&& gle);
@@ -142,6 +163,9 @@ class InternalLedgerEntry
     SponsorshipCounterEntry& sponsorshipCounterEntry();
     SponsorshipCounterEntry const& sponsorshipCounterEntry() const;
 
+    AssetAmountIssuedEntry& assetAmountIssuedEntry();
+    AssetAmountIssuedEntry const& assetAmountIssuedEntry() const;
+
     InternalLedgerKey toKey() const;
 
     std::string toString() const;
@@ -160,6 +184,15 @@ bool operator==(SponsorshipCounterEntry const& lhs,
                 SponsorshipCounterEntry const& rhs);
 bool operator!=(SponsorshipCounterEntry const& lhs,
                 SponsorshipCounterEntry const& rhs);
+
+bool operator==(AssetAmountIssuedKey const& lhs,
+                AssetAmountIssuedKey const& rhs);
+bool operator!=(AssetAmountIssuedKey const& lhs,
+                AssetAmountIssuedKey const& rhs);                    
+bool operator==(AssetAmountIssuedEntry const& lhs,
+                AssetAmountIssuedEntry const& rhs);
+bool operator!=(AssetAmountIssuedEntry const& lhs,
+                AssetAmountIssuedEntry const& rhs);
 
 bool operator==(InternalLedgerKey const& lhs, InternalLedgerKey const& rhs);
 bool operator!=(InternalLedgerKey const& lhs, InternalLedgerKey const& rhs);
