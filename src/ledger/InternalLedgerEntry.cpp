@@ -748,7 +748,7 @@ InternalLedgerEntry::toString() const
         return fmt::format(FMT_STRING("{{\n  {},\n  amount = {}\n}}\n"),
                            xdr_to_string(assetAmountIssuedEntry().asset,
                                          "asset"),
-                           assetAmountIssuedEntry().amount);    
+                           uint128_to_string(assetAmountIssuedEntry().amount));
     default:
         abort();
     }

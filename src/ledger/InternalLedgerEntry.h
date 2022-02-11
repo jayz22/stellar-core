@@ -6,6 +6,7 @@
 
 #include "xdr/Stellar-ledger-entries.h"
 #include "xdr/Stellar-ledger.h"
+#include "lib/util/uint128_t.h"
 
 namespace stellar
 {
@@ -112,7 +113,7 @@ struct SponsorshipCounterEntry
 struct AssetAmountIssuedEntry
 {
     Asset asset;
-    int64_t amount;
+    uint128_t amount;
 };
 
 class InternalLedgerEntry
