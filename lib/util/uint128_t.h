@@ -57,6 +57,7 @@ THE SOFTWARE.
 #include <iostream>
 #include <limits>
 #include <locale>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -1176,5 +1177,14 @@ uint128_bits(uint128_t const& x)
         return 128 - large_int::clz_helper<uint128_t>::clz(x);
     }
 }
+
+inline std::string
+uint128_to_string(uint128_t const& x)
+{
+    std::stringstream os;
+    os << x;
+    return os.str();
+}
+
 #endif
 }
