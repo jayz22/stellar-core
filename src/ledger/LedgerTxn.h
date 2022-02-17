@@ -473,6 +473,10 @@ class AbstractLedgerTxnParent
     // anything other than a (real or stub) root LedgerTxn.
     virtual void dropLiquidityPools() = 0;
 
+    // Delete all amount issued entries in the database. Will throw when called
+    // on anything other than a (real or stub) root LedgerTxn.
+    virtual void dropAmountIssued() = 0;
+
     // Return the current cache hit rate for prefetched ledger entries, as a
     // fraction from 0.0 to 1.0. Will throw when called on anything other than a
     // (real or stub) root LedgerTxn.
@@ -770,6 +774,7 @@ class LedgerTxn : public AbstractLedgerTxn
     void dropTrustLines() override;
     void dropClaimableBalances() override;
     void dropLiquidityPools() override;
+    void dropAmountIssued() override;
     double getPrefetchHitRate() const override;
     uint32_t prefetch(UnorderedSet<LedgerKey> const& keys) override;
     void prepareNewObjects(size_t s) override;
@@ -828,6 +833,7 @@ class LedgerTxnRoot : public AbstractLedgerTxnParent
     void dropTrustLines() override;
     void dropClaimableBalances() override;
     void dropLiquidityPools() override;
+    void dropAmountIssued() override;
 
 #ifdef BUILD_TESTS
     void resetForFuzzer() override;
