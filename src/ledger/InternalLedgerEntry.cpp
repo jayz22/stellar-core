@@ -67,28 +67,25 @@ operator!=(SponsorshipCounterEntry const& lhs,
 }
 
 bool
-operator==(AssetAmountIssuedKey const& lhs, AssetAmountIssuedKey const& rhs)
+operator==(AmountIssuedKey const& lhs, AmountIssuedKey const& rhs)
 {
     return lhs.asset == rhs.asset;
 }
 
 bool
-operator!=(AssetAmountIssuedKey const& lhs, AssetAmountIssuedKey const& rhs)
+operator!=(AmountIssuedKey const& lhs, AmountIssuedKey const& rhs)
 {
     return !(lhs == rhs);
 }
 
 bool
-operator==(AssetAmountIssuedEntry const& lhs,
-           AssetAmountIssuedEntry const& rhs)
+operator==(AmountIssuedEntry const& lhs, AmountIssuedEntry const& rhs)
 {
-    return lhs.asset == rhs.asset &&
-           lhs.amount == rhs.amount;
+    return lhs.asset == rhs.asset && lhs.amount == rhs.amount;
 }
 
 bool
-operator!=(AssetAmountIssuedEntry const& lhs,
-           AssetAmountIssuedEntry const& rhs)
+operator!=(AmountIssuedEntry const& lhs, AmountIssuedEntry const& rhs)
 {
     return !(lhs == rhs);
 }
@@ -122,10 +119,10 @@ InternalLedgerKey::InternalLedgerKey(SponsorshipCounterKey const& sck)
     sponsorshipCounterKeyRef() = sck;
 }
 
-InternalLedgerKey::InternalLedgerKey(AssetAmountIssuedKey const& aik)
-    : InternalLedgerKey(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED)
+InternalLedgerKey::InternalLedgerKey(AmountIssuedKey const& aik)
+    : InternalLedgerKey(InternalLedgerEntryType::AMOUNT_ISSUED)
 {
-    assetAmountIssuedKeyRef() = aik;
+    amountIssuedKeyRef() = aik;
 }
 
 InternalLedgerKey::InternalLedgerKey(InternalLedgerKey const& glk)
@@ -157,10 +154,10 @@ InternalLedgerKey::makeSponsorshipCounterKey(AccountID const& sponsoringId)
 }
 
 InternalLedgerKey
-InternalLedgerKey::makeAssetAmountIssuedKey(Asset const& asset)
+InternalLedgerKey::makeAmountIssuedKey(Asset const& asset)
 {
-    InternalLedgerKey res(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED);
-    res.assetAmountIssuedKeyRef().asset = asset;
+    InternalLedgerKey res(InternalLedgerEntryType::AMOUNT_ISSUED);
+    res.amountIssuedKeyRef().asset = asset;
     return res;
 }
 
@@ -211,8 +208,8 @@ InternalLedgerKey::hash() const
         res = std::hash<stellar::uint256>()(
             sponsorshipCounterKey().sponsoringID.ed25519());
         break;
-    case stellar::InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        res = std::hash<stellar::Asset>()(assetAmountIssuedKey().asset);
+    case stellar::InternalLedgerEntryType::AMOUNT_ISSUED:
+        res = std::hash<stellar::Asset>()(amountIssuedKey().asset);
         break;
     default:
         abort();
@@ -238,8 +235,8 @@ InternalLedgerKey::assign(InternalLedgerKey const& glk)
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         sponsorshipCounterKeyRef() = glk.sponsorshipCounterKey();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        assetAmountIssuedKeyRef() = glk.assetAmountIssuedKey();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        amountIssuedKeyRef() = glk.amountIssuedKey();
         break;
     default:
         abort();
@@ -262,8 +259,8 @@ InternalLedgerKey::assign(InternalLedgerKey&& glk)
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         sponsorshipCounterKeyRef() = std::move(glk.mSponsorshipCounterKey);
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        assetAmountIssuedKeyRef() = std::move(glk.mAssetAmountIssuedKey);
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        amountIssuedKeyRef() = std::move(glk.mAmountIssuedKey);
         break;
     default:
         abort();
@@ -284,8 +281,8 @@ InternalLedgerKey::construct()
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         new (&mSponsorshipCounterKey) SponsorshipCounterKey();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        new (&mAssetAmountIssuedKey) AssetAmountIssuedKey();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        new (&mAmountIssuedKey) AmountIssuedKey();
         break;
     default:
         abort();
@@ -307,8 +304,8 @@ InternalLedgerKey::destruct()
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         mSponsorshipCounterKey.~SponsorshipCounterKey();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        mAssetAmountIssuedKey.~AssetAmountIssuedKey();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        mAmountIssuedKey.~AmountIssuedKey();
         break;
     default:
         abort();
@@ -387,19 +384,19 @@ InternalLedgerKey::sponsorshipCounterKey() const
     return mSponsorshipCounterKey;
 }
 
-AssetAmountIssuedKey&
-InternalLedgerKey::assetAmountIssuedKeyRef()
+AmountIssuedKey&
+InternalLedgerKey::amountIssuedKeyRef()
 {
-    checkDiscriminant(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED);
+    checkDiscriminant(InternalLedgerEntryType::AMOUNT_ISSUED);
     mHash = 0;
-    return mAssetAmountIssuedKey;
+    return mAmountIssuedKey;
 }
 
-AssetAmountIssuedKey const&
-InternalLedgerKey::assetAmountIssuedKey() const
+AmountIssuedKey const&
+InternalLedgerKey::amountIssuedKey() const
 {
-    checkDiscriminant(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED);
-    return mAssetAmountIssuedKey;
+    checkDiscriminant(InternalLedgerEntryType::AMOUNT_ISSUED);
+    return mAmountIssuedKey;
 }
 
 std::string
@@ -418,10 +415,9 @@ InternalLedgerKey::toString() const
         return fmt::format(FMT_STRING("{{\n  {}\n}}\n"),
                            xdr_to_string(sponsorshipCounterKey().sponsoringID,
                                          "sponsoringID"));
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
         return fmt::format(FMT_STRING("{{\n  {}\n}}\n"),
-                           xdr_to_string(assetAmountIssuedKey().asset,
-                                         "asset"));                                                 
+                           xdr_to_string(amountIssuedKey().asset, "asset"));
     default:
         abort();
     }
@@ -443,8 +439,8 @@ operator==(InternalLedgerKey const& lhs, InternalLedgerKey const& rhs)
         return lhs.sponsorshipKey() == rhs.sponsorshipKey();
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         return lhs.sponsorshipCounterKey() == rhs.sponsorshipCounterKey();
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        return lhs.assetAmountIssuedKey() == rhs.assetAmountIssuedKey();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        return lhs.amountIssuedKey() == rhs.amountIssuedKey();
     default:
         abort();
     }
@@ -485,10 +481,10 @@ InternalLedgerEntry::InternalLedgerEntry(SponsorshipCounterEntry const& sce)
     sponsorshipCounterEntry() = sce;
 }
 
-InternalLedgerEntry::InternalLedgerEntry(AssetAmountIssuedEntry const& aie)
-    : InternalLedgerEntry(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED)
+InternalLedgerEntry::InternalLedgerEntry(AmountIssuedEntry const& aie)
+    : InternalLedgerEntry(InternalLedgerEntryType::AMOUNT_ISSUED)
 {
-    assetAmountIssuedEntry() = aie;
+    amountIssuedEntry() = aie;
 }
 
 InternalLedgerEntry::InternalLedgerEntry(InternalLedgerEntry const& gle)
@@ -549,8 +545,8 @@ InternalLedgerEntry::assign(InternalLedgerEntry const& gle)
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         sponsorshipCounterEntry() = gle.sponsorshipCounterEntry();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        assetAmountIssuedEntry() = gle.assetAmountIssuedEntry();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        amountIssuedEntry() = gle.amountIssuedEntry();
         break;
     default:
         abort();
@@ -572,9 +568,9 @@ InternalLedgerEntry::assign(InternalLedgerEntry&& gle)
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         sponsorshipCounterEntry() = std::move(gle.sponsorshipCounterEntry());
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        assetAmountIssuedEntry() = std::move(gle.assetAmountIssuedEntry());
-        break;        
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        amountIssuedEntry() = std::move(gle.amountIssuedEntry());
+        break;
     default:
         abort();
     }
@@ -594,8 +590,8 @@ InternalLedgerEntry::construct()
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         new (&mSponsorshipCounterEntry) SponsorshipCounterEntry();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        new (&mAssetAmountIssuedEntry) AssetAmountIssuedEntry();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        new (&mAmountIssuedEntry) AmountIssuedEntry();
         break;
     default:
         abort();
@@ -616,8 +612,8 @@ InternalLedgerEntry::destruct()
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         mSponsorshipCounterEntry.~SponsorshipCounterEntry();
         break;
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        mAssetAmountIssuedEntry.~AssetAmountIssuedEntry();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        mAmountIssuedEntry.~AmountIssuedEntry();
         break;
     default:
         abort();
@@ -692,18 +688,18 @@ InternalLedgerEntry::sponsorshipCounterEntry() const
     return mSponsorshipCounterEntry;
 }
 
-AssetAmountIssuedEntry&
-InternalLedgerEntry::assetAmountIssuedEntry()
+AmountIssuedEntry&
+InternalLedgerEntry::amountIssuedEntry()
 {
-    checkDiscriminant(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED);
-    return mAssetAmountIssuedEntry;
+    checkDiscriminant(InternalLedgerEntryType::AMOUNT_ISSUED);
+    return mAmountIssuedEntry;
 }
 
-AssetAmountIssuedEntry const&
-InternalLedgerEntry::assetAmountIssuedEntry() const
+AmountIssuedEntry const&
+InternalLedgerEntry::amountIssuedEntry() const
 {
-    checkDiscriminant(InternalLedgerEntryType::ASSET_AMOUNT_ISSUED);
-    return mAssetAmountIssuedEntry;
+    checkDiscriminant(InternalLedgerEntryType::AMOUNT_ISSUED);
+    return mAmountIssuedEntry;
 }
 
 InternalLedgerKey
@@ -719,9 +715,8 @@ InternalLedgerEntry::toKey() const
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         return InternalLedgerKey(
             SponsorshipCounterKey{sponsorshipCounterEntry().sponsoringID});
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        return InternalLedgerKey(
-            AssetAmountIssuedKey{assetAmountIssuedEntry().asset});
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        return InternalLedgerKey(AmountIssuedKey{amountIssuedEntry().asset});
     default:
         abort();
     }
@@ -744,11 +739,10 @@ InternalLedgerEntry::toString() const
                            xdr_to_string(sponsorshipCounterEntry().sponsoringID,
                                          "sponsoringID"),
                            sponsorshipCounterEntry().numSponsoring);
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
         return fmt::format(FMT_STRING("{{\n  {},\n  amount = {}\n}}\n"),
-                           xdr_to_string(assetAmountIssuedEntry().asset,
-                                         "asset"),
-                           uint128_to_string(assetAmountIssuedEntry().amount));
+                           xdr_to_string(amountIssuedEntry().asset, "asset"),
+                           uint128_to_string(amountIssuedEntry().amount));
     default:
         abort();
     }
@@ -770,8 +764,8 @@ operator==(InternalLedgerEntry const& lhs, InternalLedgerEntry const& rhs)
         return lhs.sponsorshipEntry() == rhs.sponsorshipEntry();
     case InternalLedgerEntryType::SPONSORSHIP_COUNTER:
         return lhs.sponsorshipCounterEntry() == rhs.sponsorshipCounterEntry();
-    case InternalLedgerEntryType::ASSET_AMOUNT_ISSUED:
-        return lhs.assetAmountIssuedEntry() == rhs.assetAmountIssuedEntry();
+    case InternalLedgerEntryType::AMOUNT_ISSUED:
+        return lhs.amountIssuedEntry() == rhs.amountIssuedEntry();
     default:
         abort();
     }

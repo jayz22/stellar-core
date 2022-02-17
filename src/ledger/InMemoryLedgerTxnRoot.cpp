@@ -144,6 +144,11 @@ InMemoryLedgerTxnRoot::dropLiquidityPools()
 {
 }
 
+void
+InMemoryLedgerTxnRoot::dropAmountIssued()
+{
+}
+
 double
 InMemoryLedgerTxnRoot::getPrefetchHitRate() const
 {

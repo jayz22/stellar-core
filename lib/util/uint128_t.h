@@ -139,27 +139,6 @@ class alignas(sizeof(_Hi) * 2) int128_base final
 {
     static_assert(sizeof(_Hi) == sizeof(_Low),
                   "low type, high type should have same size");
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    _Low low_{};
-    _Hi high_{};
-
-    constexpr int128_base(_Hi high, _Low low) : low_(low), high_(high)
-    {
-    }
-
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    _Hi high_{};
-    _Low low_{};
-
-    constexpr int128_base(_Hi high, _Low low) : high_(high), low_(low)
-    {
-    }
-
-#else
-#error endian not support
-#endif
-
     struct integral_tag
     {
     };
@@ -185,6 +164,26 @@ class alignas(sizeof(_Hi) * 2) int128_base final
     } // NOLINT signed shift
 
   public:
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    _Low low_{};
+    _Hi high_{};
+
+    constexpr int128_base(_Hi high, _Low low) : low_(low), high_(high)
+    {
+    }
+
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    _Hi high_{};
+    _Low low_{};
+
+    constexpr int128_base(_Hi high, _Low low) : high_(high), low_(low)
+    {
+    }
+
+#else
+#error endian not support
+#endif
+
     constexpr int128_base() noexcept = default;
 
     constexpr int128_base(const int128_base&) noexcept = default;

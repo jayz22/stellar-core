@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "lib/util/uint128_t.h"
 #include "xdr/Stellar-ledger-entries.h"
 #include "xdr/Stellar-ledger.h"
-#include "lib/util/uint128_t.h"
 
 namespace stellar
 {
@@ -16,7 +16,7 @@ enum class InternalLedgerEntryType
     LEDGER_ENTRY,
     SPONSORSHIP,
     SPONSORSHIP_COUNTER,
-    ASSET_AMOUNT_ISSUED,
+    AMOUNT_ISSUED,
 };
 
 struct SponsorshipKey
@@ -29,7 +29,7 @@ struct SponsorshipCounterKey
     AccountID sponsoringID;
 };
 
-struct AssetAmountIssuedKey
+struct AmountIssuedKey
 {
     Asset asset;
 };
@@ -44,7 +44,7 @@ class InternalLedgerKey
         LedgerKey mLedgerKey;
         SponsorshipKey mSponsorshipKey;
         SponsorshipCounterKey mSponsorshipCounterKey;
-        AssetAmountIssuedKey mAssetAmountIssuedKey;
+        AmountIssuedKey mAmountIssuedKey;
     };
 
     void assign(InternalLedgerKey const& glk);
@@ -58,14 +58,13 @@ class InternalLedgerKey
     LedgerKey& ledgerKeyRef();
     SponsorshipKey& sponsorshipKeyRef();
     SponsorshipCounterKey& sponsorshipCounterKeyRef();
-    AssetAmountIssuedKey& assetAmountIssuedKeyRef();
+    AmountIssuedKey& amountIssuedKeyRef();
 
   public:
     static InternalLedgerKey makeSponsorshipKey(AccountID const& sponsoredId);
     static InternalLedgerKey
     makeSponsorshipCounterKey(AccountID const& sponsoringId);
-    static InternalLedgerKey
-    makeAssetAmountIssuedKey(Asset const& asset);
+    static InternalLedgerKey makeAmountIssuedKey(Asset const& asset);
 
     InternalLedgerKey();
     explicit InternalLedgerKey(InternalLedgerEntryType t);
@@ -73,7 +72,7 @@ class InternalLedgerKey
     InternalLedgerKey(LedgerKey const& lk);
     explicit InternalLedgerKey(SponsorshipKey const& sk);
     explicit InternalLedgerKey(SponsorshipCounterKey const& sck);
-    explicit InternalLedgerKey(AssetAmountIssuedKey const& aik);
+    explicit InternalLedgerKey(AmountIssuedKey const& aik);
 
     InternalLedgerKey(InternalLedgerKey const& glk);
     InternalLedgerKey(InternalLedgerKey&& glk);
@@ -91,7 +90,7 @@ class InternalLedgerKey
 
     SponsorshipCounterKey const& sponsorshipCounterKey() const;
 
-    AssetAmountIssuedKey const& assetAmountIssuedKey() const;
+    AmountIssuedKey const& amountIssuedKey() const;
 
     std::string toString() const;
 
@@ -110,7 +109,7 @@ struct SponsorshipCounterEntry
     int64_t numSponsoring;
 };
 
-struct AssetAmountIssuedEntry
+struct AmountIssuedEntry
 {
     Asset asset;
     uint128_t amount;
@@ -125,7 +124,7 @@ class InternalLedgerEntry
         LedgerEntry mLedgerEntry;
         SponsorshipEntry mSponsorshipEntry;
         SponsorshipCounterEntry mSponsorshipCounterEntry;
-        AssetAmountIssuedEntry mAssetAmountIssuedEntry;
+        AmountIssuedEntry mAmountIssuedEntry;
     };
 
     void assign(InternalLedgerEntry const& gle);
@@ -142,7 +141,7 @@ class InternalLedgerEntry
     InternalLedgerEntry(LedgerEntry const& le);
     explicit InternalLedgerEntry(SponsorshipEntry const& se);
     explicit InternalLedgerEntry(SponsorshipCounterEntry const& sce);
-    explicit InternalLedgerEntry(AssetAmountIssuedEntry const& aie);
+    explicit InternalLedgerEntry(AmountIssuedEntry const& aie);
 
     InternalLedgerEntry(InternalLedgerEntry const& gle);
     InternalLedgerEntry(InternalLedgerEntry&& gle);
@@ -164,8 +163,8 @@ class InternalLedgerEntry
     SponsorshipCounterEntry& sponsorshipCounterEntry();
     SponsorshipCounterEntry const& sponsorshipCounterEntry() const;
 
-    AssetAmountIssuedEntry& assetAmountIssuedEntry();
-    AssetAmountIssuedEntry const& assetAmountIssuedEntry() const;
+    AmountIssuedEntry& amountIssuedEntry();
+    AmountIssuedEntry const& amountIssuedEntry() const;
 
     InternalLedgerKey toKey() const;
 
@@ -186,14 +185,10 @@ bool operator==(SponsorshipCounterEntry const& lhs,
 bool operator!=(SponsorshipCounterEntry const& lhs,
                 SponsorshipCounterEntry const& rhs);
 
-bool operator==(AssetAmountIssuedKey const& lhs,
-                AssetAmountIssuedKey const& rhs);
-bool operator!=(AssetAmountIssuedKey const& lhs,
-                AssetAmountIssuedKey const& rhs);                    
-bool operator==(AssetAmountIssuedEntry const& lhs,
-                AssetAmountIssuedEntry const& rhs);
-bool operator!=(AssetAmountIssuedEntry const& lhs,
-                AssetAmountIssuedEntry const& rhs);
+bool operator==(AmountIssuedKey const& lhs, AmountIssuedKey const& rhs);
+bool operator!=(AmountIssuedKey const& lhs, AmountIssuedKey const& rhs);
+bool operator==(AmountIssuedEntry const& lhs, AmountIssuedEntry const& rhs);
+bool operator!=(AmountIssuedEntry const& lhs, AmountIssuedEntry const& rhs);
 
 bool operator==(InternalLedgerKey const& lhs, InternalLedgerKey const& rhs);
 bool operator!=(InternalLedgerKey const& lhs, InternalLedgerKey const& rhs);

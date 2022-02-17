@@ -1965,6 +1965,12 @@ LedgerTxn::dropLiquidityPools()
     throw std::runtime_error("called dropLiquidityPools on non-root LedgerTxn");
 }
 
+void
+LedgerTxn::dropAmountIssued()
+{
+    throw std::runtime_error("called dropAmountIssued on non-root LedgerTxn");
+}
+
 double
 LedgerTxn::getPrefetchHitRate() const
 {
@@ -2590,6 +2596,18 @@ LedgerTxnRoot::Impl::bulkApply(BulkLedgerEntryChangeAccumulator& bleca,
         bulkDeleteLiquidityPool(deleteLiquidityPool, cons);
         deleteLiquidityPool.clear();
     }
+    auto& upsertAmountIssued = bleca.getAmountIssuedToUpsert();
+    if (upsertAmountIssued.size() > bufferThreshold)
+    {
+        bulkUpsertAmountIssued(upsertAmountIssued);
+        upsertAmountIssued.clear();
+    }
+    auto& deleteAmountIssued = bleca.getAmountIssuedToDelete();
+    if (deleteAmountIssued.size() > bufferThreshold)
+    {
+        bulkDeleteAmountIssued(deleteAmountIssued, cons);
+        deleteAmountIssued.clear();
+    }
 }
 
 void
@@ -2784,6 +2802,12 @@ void
 LedgerTxnRoot::dropLiquidityPools()
 {
     mImpl->dropLiquidityPools();
+}
+
+void
+LedgerTxnRoot::dropAmountIssued()
+{
+    mImpl->dropAmountIssued();
 }
 
 uint32_t
@@ -3364,11 +3388,41 @@ std::shared_ptr<InternalLedgerEntry const>
 LedgerTxnRoot::Impl::getNewestVersion(InternalLedgerKey const& gkey) const
 {
     ZoneScoped;
-    // Right now, only LEDGER_ENTRY are recorded in the SQL database
-    if (gkey.type() != InternalLedgerEntryType::LEDGER_ENTRY)
+    // Right now, only AMOUNT_ISSUED and LEDGER_ENTRY are recorded in the SQL
+    // database
+    if (gkey.type() != InternalLedgerEntryType::AMOUNT_ISSUED ||
+        gkey.type() != InternalLedgerEntryType::LEDGER_ENTRY)
     {
         return nullptr;
     }
+
+    // TODO: refactor
+    if (gkey.type() == InternalLedgerEntryType::AMOUNT_ISSUED)
+    {
+        std::shared_ptr<InternalLedgerEntry const> entry;
+        try
+        {
+            entry = loadAmountIssued(gkey);
+        }
+        catch (NonSociRelatedException&)
+        {
+            throw;
+        }
+        catch (std::exception& e)
+        {
+            printErrorAndAbort(
+                "fatal error when loading ledger entry from LedgerTxnRoot: ",
+                e.what());
+        }
+        catch (...)
+        {
+            printErrorAndAbort(
+                "unknown fatal error when loading ledger entry from "
+                "LedgerTxnRoot");
+        }
+        return entry;
+    }
+
     auto const& key = gkey.ledgerKey();
 
     if (mEntryCache.exists(key))
