@@ -8,6 +8,7 @@
 #include "transactions/TransactionUtils.h"
 #include "util/XDROperators.h"
 #include "util/types.h"
+#include "util/GlobalChecks.h"
 
 namespace stellar
 {
@@ -46,9 +47,10 @@ class TrustLineWrapper::IssuerImpl : public TrustLineWrapper::AbstractImpl
 {
     AccountID const mAccountID;
     Asset const mAsset;
+    LedgerTxnEntry mEntry;
 
   public:
-    IssuerImpl(AccountID const& accountID, Asset const& asset);
+    IssuerImpl(AccountID const& accountID, Asset const& asset, LedgerTxnEntry&& entry);
 
     operator bool() const override;
 
@@ -99,7 +101,19 @@ TrustLineWrapper::TrustLineWrapper(AbstractLedgerTxn& ltx,
     }
     else
     {
-        mImpl = std::make_unique<IssuerImpl>(accountID, asset);
+        InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(asset);
+        auto entry = ltx.load(key);
+        if (!entry) 
+        {
+            // asset has not existed in the network yet
+            InternalLedgerEntry ile(InternalLedgerEntryType::AMOUNT_ISSUED);
+            ile.amountIssuedEntry().asset = asset;
+            ile.amountIssuedEntry().amount = (uint64_t)0;
+            entry = ltx.create(ile);
+            releaseAssert(entry);
+        }
+
+        mImpl = std::make_unique<IssuerImpl>(accountID, asset, std::move(entry));
     }
 }
 
@@ -286,8 +300,9 @@ TrustLineWrapper::NonIssuerImpl::getMaxAmountReceive(
 
 // Implementation of TrustLineWrapper::IssuerImpl -----------------------------
 TrustLineWrapper::IssuerImpl::IssuerImpl(AccountID const& accountID,
-                                         Asset const& asset)
-    : mAccountID(accountID), mAsset(asset)
+                                         Asset const& asset,
+                                         LedgerTxnEntry&& entry)
+    : mAccountID(accountID), mAsset(asset), mEntry(std::move(entry))
 {
 }
 
@@ -306,6 +321,18 @@ bool
 TrustLineWrapper::IssuerImpl::addBalance(LedgerTxnHeader const& header,
                                          int64_t delta)
 {
+    // TODO: do I need to implement a 128bit version of add_balance?
+    // If we do int128_t, need to update the uint128_t file, and add lots of test cases.
+    if (delta < 0) 
+    {
+        releaseAssert(mEntry.currentGeneralized().amountIssuedEntry().amount >= uint64_t(-delta));
+        mEntry.currentGeneralized().amountIssuedEntry().amount -= uint64_t(-delta);
+    } 
+    else
+    {
+        mEntry.currentGeneralized().amountIssuedEntry().amount += uint64_t(delta);
+    }
+    // TODO: explain why this is not possible to overflow.    
     return true;
 }
 
