@@ -3,6 +3,7 @@
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 #include "test/TestExceptions.h"
+#include <iostream>
 
 namespace stellar
 {
@@ -13,6 +14,7 @@ namespace txtest
 void
 throwIf(CreateAccountResult const& result)
 {
+    std::cout << "CreateAccountResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CREATE_ACCOUNT_MALFORMED:
@@ -33,6 +35,7 @@ throwIf(CreateAccountResult const& result)
 void
 throwIf(PaymentResult const& result)
 {
+    std::cout << "PaymentResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case PAYMENT_MALFORMED:
@@ -63,6 +66,7 @@ throwIf(PaymentResult const& result)
 void
 throwIf(PathPaymentStrictReceiveResult const& result)
 {
+    std::cout << "PathPaymentStrictReceiveResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case PATH_PAYMENT_STRICT_RECEIVE_MALFORMED:
@@ -99,6 +103,7 @@ throwIf(PathPaymentStrictReceiveResult const& result)
 void
 throwIf(PathPaymentStrictSendResult const& result)
 {
+    std::cout << "PathPaymentStrictSendResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case PATH_PAYMENT_STRICT_SEND_MALFORMED:
@@ -135,6 +140,7 @@ throwIf(PathPaymentStrictSendResult const& result)
 void
 throwIf(ManageSellOfferResult const& result)
 {
+    std::cout << "ManageSellOfferResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case MANAGE_SELL_OFFER_MALFORMED:
@@ -171,6 +177,7 @@ throwIf(ManageSellOfferResult const& result)
 void
 throwIf(ManageBuyOfferResult const& result)
 {
+    std::cout << "ManageBuyOfferResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case MANAGE_BUY_OFFER_MALFORMED:
@@ -207,6 +214,7 @@ throwIf(ManageBuyOfferResult const& result)
 void
 throwIf(SetOptionsResult const& result)
 {
+    std::cout << "SetOptionsResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case SET_OPTIONS_LOW_RESERVE:
@@ -239,6 +247,7 @@ throwIf(SetOptionsResult const& result)
 void
 throwIf(ChangeTrustResult const& result)
 {
+    std::cout << "ChangeTrustResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CHANGE_TRUST_MALFORMED:
@@ -267,6 +276,7 @@ throwIf(ChangeTrustResult const& result)
 void
 throwIf(AllowTrustResult const& result)
 {
+    std::cout << "AllowTrustResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case ALLOW_TRUST_MALFORMED:
@@ -289,6 +299,7 @@ throwIf(AllowTrustResult const& result)
 void
 throwIf(AccountMergeResult const& result)
 {
+    std::cout << "AccountMergeResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case ACCOUNT_MERGE_MALFORMED:
@@ -315,6 +326,7 @@ throwIf(AccountMergeResult const& result)
 void
 throwIf(InflationResult const& result)
 {
+    std::cout << "InflationResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case INFLATION_NOT_TIME:
@@ -329,6 +341,7 @@ throwIf(InflationResult const& result)
 void
 throwIf(ManageDataResult const& result)
 {
+    std::cout << "ManageDataResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case MANAGE_DATA_NOT_SUPPORTED_YET:
@@ -349,6 +362,7 @@ throwIf(ManageDataResult const& result)
 void
 throwIf(BumpSequenceResult const& result)
 {
+    std::cout << "BumpSequenceResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case BUMP_SEQUENCE_SUCCESS:
@@ -363,6 +377,7 @@ throwIf(BumpSequenceResult const& result)
 void
 throwIf(CreateClaimableBalanceResult const& result)
 {
+    std::cout << "CreateClaimableBalanceResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CREATE_CLAIMABLE_BALANCE_MALFORMED:
@@ -385,6 +400,7 @@ throwIf(CreateClaimableBalanceResult const& result)
 void
 throwIf(ClaimClaimableBalanceResult const& result)
 {
+    std::cout << "ClaimClaimableBalanceResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CLAIM_CLAIMABLE_BALANCE_DOES_NOT_EXIST:
@@ -407,6 +423,7 @@ throwIf(ClaimClaimableBalanceResult const& result)
 void
 throwIf(ClawbackResult const& result)
 {
+    std::cout << "ClawbackResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CLAWBACK_MALFORMED:
@@ -427,6 +444,7 @@ throwIf(ClawbackResult const& result)
 void
 throwIf(ClawbackClaimableBalanceResult const& result)
 {
+    std::cout << "ClawbackClaimableBalanceResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case CLAWBACK_CLAIMABLE_BALANCE_DOES_NOT_EXIST:
@@ -445,6 +463,7 @@ throwIf(ClawbackClaimableBalanceResult const& result)
 void
 throwIf(SetTrustLineFlagsResult const& result)
 {
+    std::cout << "SetTrustLineFlagsResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case SET_TRUST_LINE_FLAGS_MALFORMED:
@@ -465,6 +484,7 @@ throwIf(SetTrustLineFlagsResult const& result)
 void
 throwIf(LiquidityPoolDepositResult const& result)
 {
+    std::cout << "LiquidityPoolDepositResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case LIQUIDITY_POOL_DEPOSIT_MALFORMED:
@@ -491,6 +511,7 @@ throwIf(LiquidityPoolDepositResult const& result)
 void
 throwIf(LiquidityPoolWithdrawResult const& result)
 {
+    std::cout << "LiquidityPoolWithdrawResult in error: " << result.code() << std::endl;
     switch (result.code())
     {
     case LIQUIDITY_POOL_WITHDRAW_MALFORMED:
@@ -513,6 +534,7 @@ throwIf(LiquidityPoolWithdrawResult const& result)
 void
 throwIf(TransactionResult const& result)
 {
+    std::cout << "TransactionResult in error: " << result.result.code() << std::endl;
     switch (result.result.code())
     {
     case txSUCCESS:
@@ -533,6 +555,7 @@ throwIf(TransactionResult const& result)
     }
 
     auto opResult = result.result.results()[0];
+    std::cout << "TransactionResult opResult in error: " << opResult.code() << std::endl;
     switch (opResult.code())
     {
     case opINNER:
@@ -553,6 +576,7 @@ throwIf(TransactionResult const& result)
         throw ex_UNKNOWN{};
     };
 
+    std::cout << "TransactionResult opResult tr type: " << opResult.tr().type() << std::endl;
     switch (opResult.tr().type())
     {
     case CREATE_ACCOUNT:

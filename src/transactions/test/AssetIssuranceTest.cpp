@@ -26,6 +26,7 @@
 
 using namespace stellar;
 using namespace stellar::txtest;
+using namespace std;
 
 TEST_CASE("issue asset", "[tx][issueasset]")
 {
@@ -36,20 +37,43 @@ TEST_CASE("issue asset", "[tx][issueasset]")
 
     // set up world
     auto root = TestAccount::createRoot(*app);
+    cout << "Root: " << root.getAccountId() << endl;
+
     auto const& lm = app->getLedgerManager();
     auto const minBalance2 = lm.getLastMinBalance(2);
     auto gateway = root.create("gw", minBalance2);
+    cout << "Gateway: " << gateway.getAccountId() << endl;
+
     Asset idr = makeAsset(gateway, "IDR");
 
-    // create a trustline with a limit of 100
-    root.changeTrust(idr, 100);
+    SECTION("basic")
+    {
+        root.changeTrust(idr, 100);
+        gateway.pay(root, idr, 90);
+        
+        InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+        LedgerTxn ltx(app->getLedgerTxnRoot());
+        auto entry = ltx.load(key);
+        std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
+        REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == (uint64_t)90);
+    }
 
-    // fill it to 90
-    gateway.pay(root, idr, 90);
-    
-    InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
-    LedgerTxn ltx(app->getLedgerTxnRoot());
-    auto entry = ltx.load(key);
-    std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
+    SECTION("overflow INT64_MAX")
+    {
+        auto a1 = root.create("A", minBalance2);
+        auto b1 = root.create("B", minBalance2);
+        root.changeTrust(idr, INT64_MAX);
+        a1.changeTrust(idr, INT64_MAX);
+        b1.changeTrust(idr, INT64_MAX);
+        gateway.pay(root, idr, INT64_MAX);
+        gateway.pay(root, idr, INT64_MAX);
+        gateway.pay(root, idr, INT64_MAX);
 
+        
+        InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+        LedgerTxn ltx(app->getLedgerTxnRoot());
+        auto entry = ltx.load(key);
+        std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
+        //REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == INT64_MAX * 3);
+    }
 }
