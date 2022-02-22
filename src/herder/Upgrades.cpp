@@ -18,6 +18,7 @@
 #include "transactions/TransactionUtils.h"
 #include "util/Decoder.h"
 #include "util/Logging.h"
+#include "util/ProtocolVersion.h"
 #include "util/Timer.h"
 #include "util/types.h"
 #include <Tracy.hpp>
@@ -41,7 +42,7 @@ save(Archive& ar, stellar::Upgrades::UpgradeParameters const& p)
     ar(make_nvp("time", stellar::VirtualClock::to_time_t(p.mUpgradeTime)));
     ar(make_nvp("version", p.mProtocolVersion));
     ar(make_nvp("fee", p.mBaseFee));
-    ar(make_nvp("maxtxsize", p.mMaxTxSize));
+    ar(make_nvp("maxtxsize", p.mMaxTxSetSize));
     ar(make_nvp("reserve", p.mBaseReserve));
     ar(make_nvp("flags", p.mFlags));
 }
@@ -55,7 +56,7 @@ load(Archive& ar, stellar::Upgrades::UpgradeParameters& o)
     o.mUpgradeTime = stellar::VirtualClock::from_time_t(t);
     ar(make_nvp("version", o.mProtocolVersion));
     ar(make_nvp("fee", o.mBaseFee));
-    ar(make_nvp("maxtxsize", o.mMaxTxSize));
+    ar(make_nvp("maxtxsize", o.mMaxTxSetSize));
     ar(make_nvp("reserve", o.mBaseReserve));
 
     // the flags upgrade was added after the fields above, so it's possible for
@@ -181,10 +182,11 @@ Upgrades::createUpgradesFor(LedgerHeader const& header) const
         result.emplace_back(LEDGER_UPGRADE_BASE_FEE);
         result.back().newBaseFee() = *mParams.mBaseFee;
     }
-    if (mParams.mMaxTxSize && (header.maxTxSetSize != *mParams.mMaxTxSize))
+    if (mParams.mMaxTxSetSize &&
+        (header.maxTxSetSize != *mParams.mMaxTxSetSize))
     {
         result.emplace_back(LEDGER_UPGRADE_MAX_TX_SET_SIZE);
-        result.back().newMaxTxSetSize() = *mParams.mMaxTxSize;
+        result.back().newMaxTxSetSize() = *mParams.mMaxTxSetSize;
     }
     if (mParams.mBaseReserve && (header.baseReserve != *mParams.mBaseReserve))
     {
@@ -278,7 +280,7 @@ Upgrades::toString() const
     appendInfo("protocolversion", mParams.mProtocolVersion);
     appendInfo("basefee", mParams.mBaseFee);
     appendInfo("basereserve", mParams.mBaseReserve);
-    appendInfo("maxtxsize", mParams.mMaxTxSize);
+    appendInfo("maxtxsetsize", mParams.mMaxTxSetSize);
     appendInfo("flags", mParams.mFlags);
 
     return r.str();
@@ -308,7 +310,7 @@ Upgrades::removeUpgrades(std::vector<UpgradeType>::const_iterator beginUpdates,
 
         resetParamIfSet(res.mProtocolVersion);
         resetParamIfSet(res.mBaseFee);
-        resetParamIfSet(res.mMaxTxSize);
+        resetParamIfSet(res.mMaxTxSetSize);
         resetParamIfSet(res.mBaseReserve);
         resetParamIfSet(res.mFlags);
 
@@ -344,7 +346,7 @@ Upgrades::removeUpgrades(std::vector<UpgradeType>::const_iterator beginUpdates,
             resetParam(res.mBaseFee, lu.newBaseFee());
             break;
         case LEDGER_UPGRADE_MAX_TX_SET_SIZE:
-            resetParam(res.mMaxTxSize, lu.newMaxTxSetSize());
+            resetParam(res.mMaxTxSetSize, lu.newMaxTxSetSize());
             break;
         case LEDGER_UPGRADE_BASE_RESERVE:
             resetParam(res.mBaseReserve, lu.newBaseReserve());
@@ -396,7 +398,9 @@ Upgrades::isValidForApply(UpgradeType const& opaqueUpgrade,
         res = res && (upgrade.newBaseReserve() != 0);
         break;
     case LEDGER_UPGRADE_FLAGS:
-        res = res && header.ledgerVersion >= 18 &&
+        res = res &&
+              protocolVersionStartsFrom(header.ledgerVersion,
+                                        ProtocolVersion::V_18) &&
               (upgrade.newFlags() & ~MASK_LEDGER_HEADER_FLAGS) == 0;
         break;
     default:
@@ -423,8 +427,8 @@ Upgrades::isValidForNomination(LedgerUpgrade const& upgrade,
     case LEDGER_UPGRADE_BASE_FEE:
         return mParams.mBaseFee && (upgrade.newBaseFee() == *mParams.mBaseFee);
     case LEDGER_UPGRADE_MAX_TX_SET_SIZE:
-        return mParams.mMaxTxSize &&
-               (upgrade.newMaxTxSetSize() == *mParams.mMaxTxSize);
+        return mParams.mMaxTxSetSize &&
+               (upgrade.newMaxTxSetSize() == *mParams.mMaxTxSetSize);
     case LEDGER_UPGRADE_BASE_RESERVE:
         return mParams.mBaseReserve &&
                (upgrade.newBaseReserve() == *mParams.mBaseReserve);
@@ -905,9 +909,12 @@ prepareLiabilities(AbstractLedgerTxn& ltx, LedgerTxnHeader const& header)
                     ++nChangedTrustLines;
                 }
 
-                // the deltas should only be positive when liabilities were
-                // introduced in ledgerVersion 10
-                if (header.current().ledgerVersion > 10 &&
+                // The deltas could be negative when liabilities were
+                // introduced in ledgerVersion 10. This was fixed and
+                // ledgerVersion 11 and starting from it deltas should be
+                // positive.
+                if (protocolVersionStartsFrom(header.current().ledgerVersion,
+                                              ProtocolVersion::V_11) &&
                     (deltaSelling > 0 || deltaBuying > 0))
                 {
                     throw std::runtime_error("invalid liabilities delta");
@@ -994,11 +1001,15 @@ Upgrades::applyVersionUpgrade(AbstractLedgerTxn& ltx, uint32_t newVersion)
     uint32_t prevVersion = header.current().ledgerVersion;
 
     header.current().ledgerVersion = newVersion;
-    if (header.current().ledgerVersion >= 10 && prevVersion < 10)
+    if (protocolVersionStartsFrom(header.current().ledgerVersion,
+                                  ProtocolVersion::V_10) &&
+        protocolVersionIsBefore(prevVersion, ProtocolVersion::V_10))
     {
         prepareLiabilities(ltx, header);
     }
-    else if (header.current().ledgerVersion == 16 && prevVersion == 15)
+    else if (protocolVersionEquals(header.current().ledgerVersion,
+                                   ProtocolVersion::V_16) &&
+             protocolVersionEquals(prevVersion, ProtocolVersion::V_15))
     {
         upgradeFromProtocol15To16(ltx);
     }
@@ -1011,7 +1022,9 @@ Upgrades::applyReserveUpgrade(AbstractLedgerTxn& ltx, uint32_t newReserve)
     bool didReserveIncrease = newReserve > header.current().baseReserve;
 
     header.current().baseReserve = newReserve;
-    if (header.current().ledgerVersion >= 10 && didReserveIncrease)
+    if (protocolVersionStartsFrom(header.current().ledgerVersion,
+                                  ProtocolVersion::V_10) &&
+        didReserveIncrease)
     {
         prepareLiabilities(ltx, header);
     }

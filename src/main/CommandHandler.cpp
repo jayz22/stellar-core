@@ -21,6 +21,7 @@
 #include "transactions/TransactionBridge.h"
 #include "transactions/TransactionUtils.h"
 #include "util/Logging.h"
+#include "util/ProtocolVersion.h"
 #include "util/StatusManager.h"
 #include <Tracy.hpp>
 #include <fmt/format.h>
@@ -535,7 +536,7 @@ CommandHandler::upgrades(std::string const& params, std::string& retStr)
 
         p.mBaseFee = parseOptionalParam<uint32>(retMap, "basefee");
         p.mBaseReserve = parseOptionalParam<uint32>(retMap, "basereserve");
-        p.mMaxTxSize = parseOptionalParam<uint32>(retMap, "maxtxsize");
+        p.mMaxTxSetSize = parseOptionalParam<uint32>(retMap, "maxtxsetsize");
         p.mProtocolVersion =
             parseOptionalParam<uint32>(retMap, "protocolversion");
         p.mFlags = parseOptionalParam<uint32>(retMap, "flags");
@@ -669,7 +670,8 @@ CommandHandler::tx(std::string const& params, std::string& retStr)
 
         {
             auto lhhe = mApp.getLedgerManager().getLastClosedLedgerHeader();
-            if (lhhe.header.ledgerVersion >= 13)
+            if (protocolVersionStartsFrom(lhhe.header.ledgerVersion,
+                                          ProtocolVersion::V_13))
             {
                 envelope = txbridge::convertForV13(envelope);
             }

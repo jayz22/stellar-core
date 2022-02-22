@@ -103,7 +103,7 @@ TrustLineWrapper::TrustLineWrapper(AbstractLedgerTxn& ltx,
     {
         InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(asset);
         auto entry = ltx.load(key);
-        if (!entry) 
+        if (!entry)
         {
             // asset has not existed in the network yet
             InternalLedgerEntry ile(InternalLedgerEntryType::AMOUNT_ISSUED);
@@ -112,7 +112,6 @@ TrustLineWrapper::TrustLineWrapper(AbstractLedgerTxn& ltx,
             entry = ltx.create(ile);
             releaseAssert(entry);
         }
-
         mImpl = std::make_unique<IssuerImpl>(accountID, asset, std::move(entry));
     }
 }
