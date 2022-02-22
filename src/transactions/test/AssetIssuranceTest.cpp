@@ -25,6 +25,7 @@
 #include "util/Timer.h"
 
 using namespace stellar;
+using namespace stellar::txtest;
 
 TEST_CASE("issue asset", "[tx][issueasset]")
 {
@@ -47,9 +48,8 @@ TEST_CASE("issue asset", "[tx][issueasset]")
     gateway.pay(root, idr, 90);
     
     InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+    LedgerTxn ltx(app->getLedgerTxnRoot());
     auto entry = ltx.load(key);
-
-    lm.
-
+    std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
 
 }
