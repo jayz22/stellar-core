@@ -323,18 +323,18 @@ TrustLineWrapper::IssuerImpl::addBalance(LedgerTxnHeader const& header,
     // TODO: do I need to implement a 128bit version of add_balance?
     // If we do int128_t, need to update the uint128_t file, and add lots of test cases.
     // delta < 0 means issuer paying out the asset => amount issued increase
+    stellar::uint128_t& currIssued = mEntry.currentGeneralized().amountIssuedEntry().amount;
     if (delta < 0)
     {
         uint64_t deltaIssued = -delta;
         std::cout << "Amount issued has been increased by " << deltaIssued << std::endl;
-        mEntry.currentGeneralized().amountIssuedEntry().amount += deltaIssued;
+        currIssued += deltaIssued;
     }
     else
     {
-        stellar::uint128_t& currIssued = mEntry.currentGeneralized().amountIssuedEntry().amount;
         std::cout << "Current amount issued: " << currIssued << ", will decrese by " << delta << std::endl;
-        releaseAssert(currIssued >= uint64_t(-delta));
-        mEntry.currentGeneralized().amountIssuedEntry().amount -= uint64_t(delta);
+        releaseAssert(currIssued >= uint64_t(delta));
+        currIssued -= uint64_t(delta);
     }
     // TODO: explain why this is not possible to overflow.    
     return true;

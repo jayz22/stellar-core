@@ -166,8 +166,8 @@ getTestConfig(int instanceNumber, Config::TestDbMode mode)
     {
         // by default, tests should be run with in memory SQLITE as it's faster
         // you can change this by enabling the appropriate line below
-        mode = Config::TESTDB_IN_MEMORY_SQLITE;
-        // mode = Config::TESTDB_ON_DISK_SQLITE;
+        // mode = Config::TESTDB_IN_MEMORY_SQLITE;
+        mode = Config::TESTDB_ON_DISK_SQLITE;
         // mode = Config::TESTDB_POSTGRESQL;
     }
     auto& cfgs = gTestCfg[mode];

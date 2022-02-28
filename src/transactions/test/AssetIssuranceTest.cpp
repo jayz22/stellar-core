@@ -40,26 +40,39 @@ TEST_CASE("issue asset", "[tx][issueasset]")
     cout << "Root: " << root.getAccountId() << endl;
 
     auto const& lm = app->getLedgerManager();
-    auto const minBalance2 = lm.getLastMinBalance(2);
+    auto const minBalance2 = lm.getLastMinBalance(3);
     auto gateway = root.create("gw84393", minBalance2);
     cout << "Gateway: " << gateway.getAccountId() << endl;
 
     Asset idr = makeAsset(gateway, "IDR");
 
-    SECTION("basic")
-    {
-        root.changeTrust(idr, 100);
-        gateway.pay(root, idr, 90);
+    SECTION("payment")
+    {        
+        {
+            root.changeTrust(idr, 100);
+            gateway.pay(root, idr, 90); // issue 90 units of "IDR" via payment
+
+            InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+            LedgerTxn ltx(app->getLedgerTxnRoot());
+            auto ile = ltx.load(key).currentGeneralized();
+            std::cout << ile.amountIssuedEntry().amount << std::endl;
+            REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)90);
+        }
+
+        /* TODO: why does this complain about already has child? */
+        {
+            root.pay(gateway, idr, 40); // burn 40 units of "IDR" via payment
+
+            InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+            LedgerTxn ltx(app->getLedgerTxnRoot());            
+            auto ile = ltx.load(key).currentGeneralized();
+            std::cout << ile.amountIssuedEntry().amount << std::endl;
+            REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)50);
+        }
         
-        InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
-        LedgerTxn ltx(app->getLedgerTxnRoot());
-        auto entry = ltx.load(key);
-        auto ile = entry.currentGeneralized();
-        std::cout << ile.amountIssuedEntry().amount << std::endl;        
-        REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)90);
     }
 
-    SECTION("overflow INT64_MAX")
+    SECTION("issue amount greater than INT64_MAX")
     {
         auto a1 = root.create("A", minBalance2);
         auto b1 = root.create("B", minBalance2);
@@ -76,4 +89,67 @@ TEST_CASE("issue asset", "[tx][issueasset]")
         std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
         //REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == 27670116110564327421);
     }
+
+    SECTION("claimable balance")
+    {
+        // acc2 is authorized
+        root.changeTrust(idr, INT64_MAX);
+
+        ClaimPredicate pred;
+        pred.type(CLAIM_PREDICATE_BEFORE_ABSOLUTE_TIME).absBefore() = INT64_MAX;
+
+        // TODO: refactor?
+        auto makeClaimant = [](AccountID const& account, ClaimPredicate const& pred) {
+            Claimant c;
+            c.v0().destination = account;
+            c.v0().predicate = pred;
+            return c;
+        };
+        ClaimableBalanceID claimableBalanceID;
+        { 
+            xdr::xvector<Claimant, 10> validClaimants{makeClaimant(root, pred), makeClaimant(gateway, pred)};
+            claimableBalanceID = gateway.createClaimableBalance(idr, 75, validClaimants); // issue asset by creating claimable balance
+
+            InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+            LedgerTxn ltx(app->getLedgerTxnRoot());
+            auto ile = ltx.load(key).currentGeneralized();
+            std::cout << ile.amountIssuedEntry().amount << std::endl;
+            REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)75);
+        }
+        {
+            gateway.claimClaimableBalance(claimableBalanceID);
+            InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+            LedgerTxn ltx(app->getLedgerTxnRoot());            
+            auto ile = ltx.load(key).currentGeneralized();
+            std::cout << ile.amountIssuedEntry().amount << std::endl;
+            REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)0);
+        }
+    }
 }
+
+/*
+TEST_CASE("issue asset", "[tx][manageoffer]")
+{
+
+}
+
+TEST_CASE("issue asset", "[tx][liquiditypool]")
+{
+
+}
+
+TEST_CASE("issue asset", "[tx][clawback]")
+{
+
+}
+
+TEST_CASE("issue asset", "[tx][clawbackclaimablebalance]")
+{
+
+}
+
+TEST_CASE("issue asset", "[tx][authrevokedontrustlinetoliquiditypool]")
+{
+
+}
+*/
