@@ -146,6 +146,7 @@ ApplicationImpl::ApplicationImpl(VirtualClock& clock, Config const& cfg)
 static void
 maybeRebuildLedger(Application& app, bool applyBuckets)
 {
+    // TODO: need to add internal ledger entry (amount issued) into the build type
     std::set<LedgerEntryType> toRebuild;
     auto& ps = app.getPersistentState();
     for (auto let : xdr::xdr_traits<LedgerEntryType>::enum_values())
@@ -198,6 +199,10 @@ maybeRebuildLedger(Application& app, bool applyBuckets)
                 abort();
             }
         }
+
+        // TODO: refactor
+        LOG_INFO(DEFAULT_LOG, "Dropping amountissued");
+        app.getLedgerTxnRoot().dropAmountIssued();
 
         tx.commit();
 
@@ -344,6 +349,7 @@ ApplicationImpl::upgradeToCurrentSchemaAndMaybeRebuildLedger(bool applyBuckets,
     if (forceRebuild)
     {
         auto& ps = getPersistentState();
+        // TODO: need to do anything here for the internal ledger entry?
         for (auto let : xdr::xdr_traits<LedgerEntryType>::enum_values())
         {
             ps.setRebuildForType(static_cast<LedgerEntryType>(let));

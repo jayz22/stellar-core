@@ -2489,6 +2489,13 @@ void
 BulkLedgerEntryChangeAccumulator::accumulate(EntryIterator const& iter)
 {
     // Right now, only LEDGER_ENTRY are recorded in the SQL database
+    // TODO: refactor, this should not only take ledger entry
+    if (iter.key().type() == InternalLedgerEntryType::AMOUNT_ISSUED)
+    {
+        accum(iter, mAmountIssuedToUpsert, mAmountIssuedToDelete);
+    }
+
+
     if (iter.key().type() != InternalLedgerEntryType::LEDGER_ENTRY)
     {
         return;
@@ -3390,7 +3397,7 @@ LedgerTxnRoot::Impl::getNewestVersion(InternalLedgerKey const& gkey) const
     ZoneScoped;
     // Right now, only AMOUNT_ISSUED and LEDGER_ENTRY are recorded in the SQL
     // database
-    if (gkey.type() != InternalLedgerEntryType::AMOUNT_ISSUED ||
+    if (gkey.type() != InternalLedgerEntryType::AMOUNT_ISSUED &&
         gkey.type() != InternalLedgerEntryType::LEDGER_ENTRY)
     {
         return nullptr;

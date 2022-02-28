@@ -41,7 +41,7 @@ TEST_CASE("issue asset", "[tx][issueasset]")
 
     auto const& lm = app->getLedgerManager();
     auto const minBalance2 = lm.getLastMinBalance(2);
-    auto gateway = root.create("gw", minBalance2);
+    auto gateway = root.create("gw84393", minBalance2);
     cout << "Gateway: " << gateway.getAccountId() << endl;
 
     Asset idr = makeAsset(gateway, "IDR");
@@ -54,8 +54,9 @@ TEST_CASE("issue asset", "[tx][issueasset]")
         InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
         LedgerTxn ltx(app->getLedgerTxnRoot());
         auto entry = ltx.load(key);
-        std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
-        REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == (uint64_t)90);
+        auto ile = entry.currentGeneralized();
+        std::cout << ile.amountIssuedEntry().amount << std::endl;        
+        REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)90);
     }
 
     SECTION("overflow INT64_MAX")
@@ -66,14 +67,13 @@ TEST_CASE("issue asset", "[tx][issueasset]")
         a1.changeTrust(idr, INT64_MAX);
         b1.changeTrust(idr, INT64_MAX);
         gateway.pay(root, idr, INT64_MAX);
-        gateway.pay(root, idr, INT64_MAX);
-        gateway.pay(root, idr, INT64_MAX);
-
+        gateway.pay(a1, idr, INT64_MAX);
+        gateway.pay(b1, idr, INT64_MAX);
         
         InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
         LedgerTxn ltx(app->getLedgerTxnRoot());
         auto entry = ltx.load(key);
         std::cout << entry.currentGeneralized().amountIssuedEntry().amount << std::endl;
-        //REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == INT64_MAX * 3);
+        //REQUIRE(entry.currentGeneralized().amountIssuedEntry().amount == 27670116110564327421);
     }
 }

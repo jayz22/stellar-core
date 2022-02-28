@@ -32,6 +32,7 @@ LedgerTxnRoot::Impl::loadAmountIssued(InternalLedgerKey const& key) const
     }
 
     InternalLedgerEntry ile(InternalLedgerEntryType::AMOUNT_ISSUED);
+    ile.amountIssuedEntry().asset = key.amountIssuedKey().asset;
     // The BIGINT type in PostgresSQL and SQLite are both signed 8-byte integer. The uint128_t is implemeted with two unsigned 64 bit integer, thus we need to perform the conversion here.
     ile.amountIssuedEntry().amount.low_ = static_cast<uint64_t>(amountLo);
     ile.amountIssuedEntry().amount.high_ = static_cast<uint64_t>(amountHi);
