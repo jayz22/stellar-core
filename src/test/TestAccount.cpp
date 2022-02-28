@@ -369,6 +369,8 @@ TestAccount::createClaimableBalance(Asset const& asset, int64_t amount,
     auto entry = stellar::loadClaimableBalance(ltx, returnedBalanceID);
     REQUIRE(entry);
 
+    // TODO: check the AmountIssued entry
+
     auto const& claimableBalance = entry.current().data.claimableBalance();
     REQUIRE(claimableBalance.asset == asset);
     REQUIRE(claimableBalance.amount == amount);

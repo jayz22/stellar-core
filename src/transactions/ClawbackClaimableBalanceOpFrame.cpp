@@ -6,6 +6,7 @@
 #include "ledger/LedgerTxn.h"
 #include "transactions/SponsorshipUtils.h"
 #include "transactions/TransactionUtils.h"
+#include "ledger/TrustLineWrapper.h"
 #include "util/ProtocolVersion.h"
 #include <Tracy.hpp>
 
@@ -69,6 +70,11 @@ ClawbackClaimableBalanceOpFrame::doApply(AbstractLedgerTxn& ltx)
         ltx, header, claimableBalanceLtxEntry.current(), sourceAccount);
 
     claimableBalanceLtxEntry.erase();
+
+    // Reduce the overall amount asset issued
+    auto trustline = loadTrustLine(ltx, getSourceID(), asset()); // This is the issuer trustline, thus it must be non-null and isAuthroized == true
+    auto amount = claimableBalanceLtxEntry.current().data.claimableBalance().amount;
+    trustline.addBalance(header, amount);
 
     innerResult().code(CLAWBACK_CLAIMABLE_BALANCE_SUCCESS);
     return true;

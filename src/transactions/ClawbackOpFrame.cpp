@@ -5,6 +5,7 @@
 #include "transactions/ClawbackOpFrame.h"
 #include "ledger/LedgerTxn.h"
 #include "transactions/TransactionUtils.h"
+#include "ledger/TrustLineWrapper.h"
 #include "util/ProtocolVersion.h"
 #include <Tracy.hpp>
 
@@ -49,6 +50,14 @@ ClawbackOpFrame::doApply(AbstractLedgerTxn& ltx)
         innerResult().code(CLAWBACK_UNDERFUNDED);
         return false;
     }
+
+    // update the issuer trustline
+    // We already checked in doCheckValid to make sure the sourceID is the issuer
+    auto issuerTrust = loadTrustLine(ltx, getSourceID(), mClawback.asset); // This cannot be null
+    // TODO: should we assert here, or throw an error code?
+    // releaseAssert(issuerTrust);
+    // releaseAssert(issuerTrust.isAuthorized());
+    issuerTrust.addBalance(header, mClawback.amount);
 
     innerResult().code(CLAWBACK_SUCCESS);
     return true;

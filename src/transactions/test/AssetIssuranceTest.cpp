@@ -28,6 +28,7 @@ using namespace stellar;
 using namespace stellar::txtest;
 using namespace std;
 
+// TODO: check version-specific behaviors for all tests
 TEST_CASE("issue asset", "[tx][issueasset]")
 {
     Config cfg = getTestConfig();
@@ -105,18 +106,22 @@ TEST_CASE("issue asset", "[tx][issueasset]")
             c.v0().predicate = pred;
             return c;
         };
-        ClaimableBalanceID claimableBalanceID;
-        { 
-            xdr::xvector<Claimant, 10> validClaimants{makeClaimant(root, pred), makeClaimant(gateway, pred)};
-            claimableBalanceID = gateway.createClaimableBalance(idr, 75, validClaimants); // issue asset by creating claimable balance
+        
+        xdr::xvector<Claimant, 10> validClaimants{makeClaimant(root, pred), makeClaimant(gateway, pred)};
+        ClaimableBalanceID claimableBalanceID = gateway.createClaimableBalance(idr, 75, validClaimants); // issue asset by creating claimable balance
 
+        SECTION("create")
+        {
             InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
             LedgerTxn ltx(app->getLedgerTxnRoot());
             auto ile = ltx.load(key).currentGeneralized();
             std::cout << ile.amountIssuedEntry().amount << std::endl;
             REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)75);
         }
+        
+        SECTION("claim")
         {
+            // claim
             gateway.claimClaimableBalance(claimableBalanceID);
             InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
             LedgerTxn ltx(app->getLedgerTxnRoot());            
@@ -124,6 +129,33 @@ TEST_CASE("issue asset", "[tx][issueasset]")
             std::cout << ile.amountIssuedEntry().amount << std::endl;
             REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)0);
         }
+
+        SECTION("clawback")
+        {
+            // clawback
+            gateway.claimClaimableBalance(claimableBalanceID);
+            InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+            LedgerTxn ltx(app->getLedgerTxnRoot());            
+            auto ile = ltx.load(key).currentGeneralized();
+            std::cout << ile.amountIssuedEntry().amount << std::endl;
+            REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)0);            
+        }
+    }
+
+    SECTION("clawback asset")
+    {
+        auto toSet = static_cast<uint32_t>(AUTH_CLAWBACK_ENABLED_FLAG |
+                                            AUTH_REVOCABLE_FLAG);
+        gateway.setOptions(setFlags(toSet));            
+        root.changeTrust(idr, 100);
+        gateway.pay(root, idr, 90);
+        gateway.clawback(root, idr, 80);
+
+        InternalLedgerKey key = InternalLedgerKey::makeAmountIssuedKey(idr);
+        LedgerTxn ltx(app->getLedgerTxnRoot());
+        auto ile = ltx.load(key).currentGeneralized();
+        std::cout << ile.amountIssuedEntry().amount << std::endl;
+        REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)10);
     }
 }
 
