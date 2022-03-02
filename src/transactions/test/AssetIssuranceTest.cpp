@@ -157,6 +157,16 @@ TEST_CASE("issue asset", "[tx][issueasset]")
         std::cout << ile.amountIssuedEntry().amount << std::endl;
         REQUIRE(ile.amountIssuedEntry().amount == (uint64_t)10);
     }
+
+    SECTION("manage offer")
+    {
+
+    }
+
+    SECTION("liquidity pool")
+    {
+        
+    }
 }
 
 /*
