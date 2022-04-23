@@ -11,33 +11,11 @@ namespace stellar
 namespace txsimulation
 {
 
-class TxSimTxSetFrame : public AbstractTxSetFrameForApply
-{
-    Hash const mNetworkID;
-    Hash const mPreviousLedgerHash;
-    std::vector<TransactionEnvelope> const mTransactions;
-    std::vector<TransactionResultPair> const mResults;
-    Hash const mContentsHash;
-    uint32_t const mMultiplier;
+TxSetFrameConstPtr
+makeSimTxSetFrame(Hash const& networkID, Hash const& previousLedgerHash,
+                  std::vector<TransactionEnvelope> const& transactions,
+                  std::vector<TransactionResultPair> const& results,
+                  uint32_t multiplier);
 
-  public:
-    TxSimTxSetFrame(Hash const& networkID, Hash const& previousLedgerHash,
-                    std::vector<TransactionEnvelope> const& transactions,
-                    std::vector<TransactionResultPair> const& results,
-                    uint32_t multiplier);
-
-    int64_t getBaseFee(LedgerHeader const& lh) const override;
-
-    Hash const& getContentsHash() override;
-
-    Hash const& previousLedgerHash() const override;
-
-    size_t sizeTx() const override;
-
-    size_t sizeOp() const override;
-
-    std::vector<TransactionFrameBasePtr> sortForApply() override;
-    void toXDR(TransactionSet& set) override;
-};
 }
 }
