@@ -410,8 +410,8 @@ void
 CatchupSimulation::generateRandomLedger(uint32_t version)
 {
     auto& lm = mApp.getLedgerManager();
-    TxSetFramePtr txSet =
-        std::make_shared<TxSetFrame>(lm.getLastClosedLedgerHeader().hash);
+    TxSetFrameConstPtr txSet =
+        std::make_shared<TxSetFrame const>(lm.getLastClosedLedgerHeader().hash);
 
     uint32_t ledgerSeq = lm.getLastClosedLedgerNum() + 1;
     uint64_t minBalance = lm.getLastMinBalance(5);

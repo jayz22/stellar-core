@@ -64,7 +64,7 @@ TEST_CASE("txset - correct apply order", "[tx][envelope]")
 
     Hash h;
     h[0] = 2;
-    auto txSet = std::make_shared<TxSetFrame>(h);
+    auto txSet = std::make_shared<TxSetFrame const>(h);
     txSet->add(tx1);
     txSet->add(tx2);
 
@@ -1864,7 +1864,7 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
 
         TransactionFramePtr txFrame;
         auto setup = [&]() {
-            auto txSet = std::make_shared<TxSetFrame>(
+            auto txSet = std::make_shared<TxSetFrame const>(
                 app->getLedgerManager().getLastClosedLedgerHeader().hash);
 
             txFrame = root.tx({createAccount(a1, paymentAmount)});

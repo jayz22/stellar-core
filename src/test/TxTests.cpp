@@ -504,7 +504,7 @@ closeLedgerOn(Application& app, uint32 ledgerSeq, time_t closeTime,
         closeTime = lastCloseTime;
     }
 
-    std::shared_ptr<TxSetFrame> txSet;
+    TxSetFrameConstPtr txSet;
     auto lclHash = app.getLedgerManager().getLastClosedLedgerHeader().hash;
     if (strictOrder)
     {
@@ -512,7 +512,7 @@ closeLedgerOn(Application& app, uint32 ledgerSeq, time_t closeTime,
     }
     else
     {
-        txSet = std::make_shared<TxSetFrame>(lclHash);
+        txSet = std::make_shared<TxSetFrame const>(lclHash);
     }
 
     for (auto const& tx : txs)
@@ -1540,7 +1540,7 @@ executeUpgrades(Application& app, xdr::xvector<UpgradeType, 6> const& upgrades)
 {
     auto& lm = app.getLedgerManager();
     auto const& lcl = lm.getLastClosedLedgerHeader();
-    auto txSet = std::make_shared<TxSetFrame>(lcl.hash);
+    auto txSet = std::make_shared<TxSetFrame const>(lcl.hash);
 
     auto lastCloseTime = lcl.header.scpValue.closeTime;
     app.getHerder().externalizeValue(txSet, lcl.header.ledgerSeq + 1,
