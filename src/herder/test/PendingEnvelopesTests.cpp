@@ -35,9 +35,8 @@ TEST_CASE("PendingEnvelopes recvSCPEnvelope", "[herder]")
 
     auto root = TestAccount::createRoot(*app);
     auto a1 = TestAccount{*app, getAccount("A")};
-    using TxPair = std::pair<Value, TxSetFramePtr>;
-    auto makeTxPair = [&](TxSetFramePtr txSet, uint64_t closeTime) {
-        txSet->sortForHash();
+    using TxPair = std::pair<Value, TxSetFrameConstPtr>;
+    auto makeTxPair = [&](TxSetFrameConstPtr txSet, uint64_t closeTime) {
         StellarValue sv = herder.makeStellarValue(
             txSet->getContentsHash(), closeTime, emptyUpgradeSteps, s);
         auto v = xdr::xdr_to_opaque(sv);
@@ -59,17 +58,19 @@ TEST_CASE("PendingEnvelopes recvSCPEnvelope", "[herder]")
         herder.signEnvelope(s, envelope);
         return envelope;
     };
-    auto addTransactionsEx = [&](TxSetFramePtr txSet, int n, TestAccount& t) {
-        txSet->mTransactions.resize(n);
-        std::generate(std::begin(txSet->mTransactions),
-                      std::end(txSet->mTransactions),
+    auto addTransactionsEx = [&](TxSetFrameConstPtr& txSet, int n,
+                                 TestAccount& t) {
+        std::vector<TransactionFrameBasePtr> txs(n);
+        std::generate(std::begin(txs), std::end(txs),
                       [&]() { return root.tx({createAccount(t, 10000000)}); });
+        txSet = std::make_shared<TxSetFrame const>(txSet->previousLedgerHash(),
+                                                   txs);
     };
     auto addTransactions = std::bind(addTransactionsEx, std::placeholders::_1,
                                      std::placeholders::_2, a1);
 
     auto makeTransactions = [&](Hash hash, int n) {
-        auto result = std::make_shared<TxSetFrame>(hash);
+        auto result = std::make_shared<TxSetFrame const>(hash);
         addTransactions(result, n);
         return result;
     };
