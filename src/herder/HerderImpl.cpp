@@ -1669,7 +1669,7 @@ HerderImpl::restoreSCPState()
             for (auto const& txset : latestTxSets)
             {
                 TxSetFrameConstPtr cur =
-                    make_shared<TxSetFrame>(mApp.getNetworkID(), txset);
+                    make_shared<TxSetFrame const>(mApp.getNetworkID(), txset);
                 Hash h = cur->getContentsHash();
                 mPendingEnvelopes.addTxSet(h, 0, cur);
             }
