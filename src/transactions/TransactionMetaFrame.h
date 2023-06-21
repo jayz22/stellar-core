@@ -8,7 +8,9 @@
 
 namespace stellar
 {
-
+#ifdef ENABLE_NEXT_PROTOCOL_VERSION_UNSAFE_FOR_PRODUCTION
+struct HostFunctionMetrics;
+#endif
 // Wrapper around TransactionMeta XDR that provides mutable access to fields
 // in the proper version of meta.
 class TransactionMetaFrame
@@ -32,6 +34,7 @@ class TransactionMetaFrame
     void pushContractEvents(xdr::xvector<ContractEvent>&& events);
     void pushDiagnosticEvents(xdr::xvector<DiagnosticEvent>&& events);
     void setReturnValue(SCVal&& returnValue);
+    void setContractMetrics(HostFunctionMetrics&& metrics);
 #endif
 
   private:

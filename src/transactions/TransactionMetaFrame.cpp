@@ -242,6 +242,25 @@ TransactionMetaFrame::setReturnValue(SCVal&& returnValue)
     }
 }
 
+void
+TransactionMetaFrame::setContractMetrics(HostFunctionMetrics&& metrics)
+{
+    switch (mTransactionMeta.v())
+    {
+    case 2:
+        // Do nothing, until v3 we don't call into contracts.
+        break;
+    case 3:
+        mTransactionMeta.v3().sorobanMeta.activate().metrics.cpuInsnsConsumed =
+            (int64_t)metrics.mCpuInsn;
+        mTransactionMeta.v3().sorobanMeta.activate().metrics.memBytesConsumed =
+            (int64_t)metrics.mMemByte;
+        break;
+    default:
+        releaseAssert(false);
+    }
+}
+
 #endif
 
 TransactionMeta const&

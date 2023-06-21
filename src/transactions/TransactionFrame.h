@@ -15,6 +15,7 @@
 #include "xdr/Stellar-ledger.h"
 #ifdef ENABLE_NEXT_PROTOCOL_VERSION_UNSAFE_FOR_PRODUCTION
 #include "rust/RustBridge.h"
+#include "transactions/InvokeHostFunctionOpFrame.h"
 #endif
 
 #include <memory>
@@ -60,6 +61,7 @@ class TransactionFrame : public TransactionFrameBase
     // Size of the emitted Soroban metadata.
     uint32_t mConsumedSorobanMetadataSize{};
     UnorderedMap<LedgerKey, uint32_t> mOriginalExpirations;
+    InvokeHostFunctionOpFrame::HostFunctionMetrics mMetrics;
 #endif
 
     std::shared_ptr<InternalLedgerEntry const> mCachedAccount;
@@ -196,6 +198,8 @@ class TransactionFrame : public TransactionFrameBase
     void setReturnValue(SCVal&& returnValue);
     void pushInitialExpirations(
         UnorderedMap<LedgerKey, uint32_t>&& originalExpirations);
+    void pushContractMetrics(
+        InvokeHostFunctionOpFrame::HostFunctionMetrics&& metrics);
 #endif
 
     TransactionEnvelope const& getEnvelope() const override;

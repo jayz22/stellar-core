@@ -137,137 +137,105 @@ InvokeHostFunctionOpFrame::maybePopulateDiagnosticEvents(
     }
 }
 
-struct HostFunctionMetrics
+HostFunctionMetrics::HostFunctionMetrics(medida::MetricsRegistry& metrics)
+    : mMetrics(metrics)
 {
-    medida::MetricsRegistry& mMetrics;
+}
 
-    size_t mReadEntry{0};
-    size_t mWriteEntry{0};
+bool
+HostFunctionMetrics::isCodeKey(LedgerKey const& lk)
+{
+    return lk.type() == CONTRACT_CODE;
+}
 
-    size_t mLedgerReadByte{0};
-    size_t mLedgerWriteByte{0};
-
-    size_t mReadKeyByte{0};
-    size_t mWriteKeyByte{0};
-
-    size_t mReadDataByte{0};
-    size_t mWriteDataByte{0};
-
-    size_t mReadCodeByte{0};
-    size_t mWriteCodeByte{0};
-
-    size_t mEmitEvent{0};
-    size_t mEmitEventByte{0};
-
-    size_t mCpuInsn{0};
-    size_t mMemByte{0};
-
-    size_t mMetadataSizeByte{0};
-
-    bool mSuccess{false};
-
-    HostFunctionMetrics(medida::MetricsRegistry& metrics) : mMetrics(metrics)
+void
+HostFunctionMetrics::noteReadEntry(LedgerKey const& lk, size_t n)
+{
+    mReadEntry++;
+    auto keySize = xdr::xdr_size(lk);
+    mReadKeyByte += keySize;
+    mLedgerReadByte += keySize + n;
+    if (isCodeKey(lk))
     {
+        mReadCodeByte += n;
     }
-
-    bool
-    isCodeKey(LedgerKey const& lk)
+    else
     {
-        return lk.type() == CONTRACT_CODE;
+        mReadDataByte += n;
     }
+}
 
-    void
-    noteReadEntry(LedgerKey const& lk, size_t n)
+void
+HostFunctionMetrics::noteWriteEntry(LedgerKey const& lk, size_t n)
+{
+    mWriteEntry++;
+    auto keySize = xdr::xdr_size(lk);
+    mWriteKeyByte += keySize;
+    mLedgerWriteByte += keySize + n;
+    if (isCodeKey(lk))
     {
-        mReadEntry++;
-        auto keySize = xdr::xdr_size(lk);
-        mReadKeyByte += keySize;
-        mLedgerReadByte += keySize + n;
-        if (isCodeKey(lk))
-        {
-            mReadCodeByte += n;
-        }
-        else
-        {
-            mReadDataByte += n;
-        }
+        mWriteCodeByte += n;
     }
-
-    void
-    noteWriteEntry(LedgerKey const& lk, size_t n)
+    else
     {
-        mWriteEntry++;
-        auto keySize = xdr::xdr_size(lk);
-        mWriteKeyByte += keySize;
-        mLedgerWriteByte += keySize + n;
-        if (isCodeKey(lk))
-        {
-            mWriteCodeByte += n;
-        }
-        else
-        {
-            mWriteDataByte += n;
-        }
+        mWriteDataByte += n;
     }
+}
 
-    ~HostFunctionMetrics()
+~HostFunctionMetrics::HostFunctionMetrics()
+{
+    mMetrics.NewMeter({"soroban", "host-fn-op", "read-entry"}, "entry")
+        .Mark(mReadEntry);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "write-entry"}, "entry")
+        .Mark(mWriteEntry);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "read-key-byte"}, "byte")
+        .Mark(mReadKeyByte);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "write-key-byte"}, "byte")
+        .Mark(mWriteKeyByte);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "read-ledger-byte"}, "byte")
+        .Mark(mLedgerReadByte);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "read-data-byte"}, "byte")
+        .Mark(mReadDataByte);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "read-code-byte"}, "byte")
+        .Mark(mReadCodeByte);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "write-ledger-byte"}, "byte")
+        .Mark(mLedgerWriteByte);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "write-data-byte"}, "byte")
+        .Mark(mWriteDataByte);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "write-code-byte"}, "byte")
+        .Mark(mWriteCodeByte);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "emit-event"}, "event")
+        .Mark(mEmitEvent);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "emit-event-byte"}, "byte")
+        .Mark(mEmitEventByte);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "metadata-size-byte"}, "byte")
+        .Mark(mMetadataSizeByte);
+
+    mMetrics.NewMeter({"soroban", "host-fn-op", "cpu-insn"}, "insn")
+        .Mark(mCpuInsn);
+    mMetrics.NewMeter({"soroban", "host-fn-op", "mem-byte"}, "byte")
+        .Mark(mMemByte);
+
+    if (mSuccess)
     {
-        mMetrics.NewMeter({"soroban", "host-fn-op", "read-entry"}, "entry")
-            .Mark(mReadEntry);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "write-entry"}, "entry")
-            .Mark(mWriteEntry);
-
-        mMetrics.NewMeter({"soroban", "host-fn-op", "read-key-byte"}, "byte")
-            .Mark(mReadKeyByte);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "write-key-byte"}, "byte")
-            .Mark(mWriteKeyByte);
-
-        mMetrics.NewMeter({"soroban", "host-fn-op", "read-ledger-byte"}, "byte")
-            .Mark(mLedgerReadByte);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "read-data-byte"}, "byte")
-            .Mark(mReadDataByte);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "read-code-byte"}, "byte")
-            .Mark(mReadCodeByte);
-
-        mMetrics
-            .NewMeter({"soroban", "host-fn-op", "write-ledger-byte"}, "byte")
-            .Mark(mLedgerWriteByte);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "write-data-byte"}, "byte")
-            .Mark(mWriteDataByte);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "write-code-byte"}, "byte")
-            .Mark(mWriteCodeByte);
-
-        mMetrics.NewMeter({"soroban", "host-fn-op", "emit-event"}, "event")
-            .Mark(mEmitEvent);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "emit-event-byte"}, "byte")
-            .Mark(mEmitEventByte);
-
-        mMetrics
-            .NewMeter({"soroban", "host-fn-op", "metadata-size-byte"}, "byte")
-            .Mark(mMetadataSizeByte);
-
-        mMetrics.NewMeter({"soroban", "host-fn-op", "cpu-insn"}, "insn")
-            .Mark(mCpuInsn);
-        mMetrics.NewMeter({"soroban", "host-fn-op", "mem-byte"}, "byte")
-            .Mark(mMemByte);
-
-        if (mSuccess)
-        {
-            mMetrics.NewMeter({"soroban", "host-fn-op", "success"}, "call")
-                .Mark();
-        }
-        else
-        {
-            mMetrics.NewMeter({"soroban", "host-fn-op", "failure"}, "call")
-                .Mark();
-        }
+        mMetrics.NewMeter({"soroban", "host-fn-op", "success"}, "call").Mark();
     }
-    medida::TimerContext
-    getExecTimer()
+    else
     {
-        return mMetrics.NewTimer({"soroban", "host-fn-op", "exec"}).TimeScope();
+        mMetrics.NewMeter({"soroban", "host-fn-op", "failure"}, "call").Mark();
     }
-};
+}
+
+medida::TimerContext
+HostFunctionMetrics::getExecTimer()
+{
+    return mMetrics.NewTimer({"soroban", "host-fn-op", "exec"}).TimeScope();
+}
 
 bool
 InvokeHostFunctionOpFrame::doApply(Application& app, AbstractLedgerTxn& ltx,
@@ -499,6 +467,7 @@ InvokeHostFunctionOpFrame::doApply(Application& app, AbstractLedgerTxn& ltx,
     mParentTx.pushContractEvents(std::move(success.events));
     mParentTx.setReturnValue(std::move(success.returnValue));
     mParentTx.pushInitialExpirations(std::move(originalExpirations));
+    mParentTx.pushContractMetrics(std::move(metrics));
     return true;
 }
 

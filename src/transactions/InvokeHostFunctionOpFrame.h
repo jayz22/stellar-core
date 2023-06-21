@@ -56,6 +56,46 @@ class InvokeHostFunctionOpFrame : public OperationFrame
     }
 
     virtual bool isSoroban() const override;
+
+    struct HostFunctionMetrics
+    {
+        medida::MetricsRegistry& mMetrics;
+
+        size_t mReadEntry{0};
+        size_t mWriteEntry{0};
+
+        size_t mLedgerReadByte{0};
+        size_t mLedgerWriteByte{0};
+
+        size_t mReadKeyByte{0};
+        size_t mWriteKeyByte{0};
+
+        size_t mReadDataByte{0};
+        size_t mWriteDataByte{0};
+
+        size_t mReadCodeByte{0};
+        size_t mWriteCodeByte{0};
+
+        size_t mEmitEvent{0};
+        size_t mEmitEventByte{0};
+
+        size_t mCpuInsn{0};
+        size_t mMemByte{0};
+
+        size_t mMetadataSizeByte{0};
+
+        bool mSuccess{false};
+
+        HostFunctionMetrics(medida::MetricsRegistry& metrics);
+
+        bool isCodeKey(LedgerKey const& lk);
+
+        void noteReadEntry(LedgerKey const& lk, size_t n);
+
+        void noteWriteEntry(LedgerKey const& lk, size_t n);
+
+        medida::TimerContext getExecTimer();
+    };
 };
 }
 #endif // ENABLE_NEXT_PROTOCOL_VERSION_UNSAFE_FOR_PRODUCTION

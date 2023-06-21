@@ -136,6 +136,12 @@ TransactionFrame::pushDiagnosticEvents(xdr::xvector<DiagnosticEvent>&& evts)
 }
 
 void
+TransactionFrame::pushContractMetrics(HostFunctionMetrics&& metrics)
+{
+    mMetrics = metrics
+}
+
+void
 TransactionFrame::setReturnValue(SCVal&& returnValue)
 {
     mReturnValue = returnValue;
@@ -1474,6 +1480,7 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
             outerMeta.pushContractEvents(std::move(mEvents));
             outerMeta.pushDiagnosticEvents(std::move(mDiagnosticEvents));
             outerMeta.setReturnValue(std::move(mReturnValue));
+            outerMeta.setContractMetrics(std::move(mMetrics));
 #endif
         }
         else
@@ -1484,6 +1491,7 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
             // Soroban metadata (as we don't emit any).
             mConsumedSorobanMetadataSize = 0;
             outerMeta.pushDiagnosticEvents(std::move(mDiagnosticEvents));
+            outerMeta.setContractMetrics(std::move(mMetrics));
 #endif
         }
         return success;
