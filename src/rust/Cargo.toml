@@ -11,7 +11,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 log = "=0.4.19"
-tracy-client = { version = "=0.16.4", features = ["enable"], default-features = false, optional = true}
+tracy-client = { version = "=0.17.0", features = ["enable"], default-features = false, optional = true}
 cxx = "=1.0.97"
 base64 = "=0.13.1"
 rustc-simple-version = "=0.1.0"
@@ -58,7 +58,7 @@ itertools = "=0.11.0"
 version = "=22.0.0"
 git = "https://github.com/stellar/rs-soroban-env"
 package = "soroban-env-host"
-rev = "5ed156b7fb5dd3e46635aa0f818d5db33dfd6b6a"
+rev = "0497816694bef2b103494c8c61b7c8a06a72c7d3"
 #path = "../../../rs-soroban-env/soroban-env-host"
 
 [dependencies.soroban-env-host-p21]
@@ -73,13 +73,13 @@ rev = "8809852dcf8489f99407a5ceac12625ee3d14693"
 [dependencies.soroban-test-wasms]
 version = "=22.0.0"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "5ed156b7fb5dd3e46635aa0f818d5db33dfd6b6a"
+rev = "0497816694bef2b103494c8c61b7c8a06a72c7d3"
 #path = "../../../rs-soroban-env/soroban-test-wasms"
 
 [dependencies.soroban-synth-wasm]
 version = "=22.0.0"
 git = "https://github.com/stellar/rs-soroban-env"
-rev = "5ed156b7fb5dd3e46635aa0f818d5db33dfd6b6a"
+rev = "0497816694bef2b103494c8c61b7c8a06a72c7d3"
 #path = "../../../rs-soroban-env/soroban-synth-wasm"
 
 [dependencies.cargo-lock]

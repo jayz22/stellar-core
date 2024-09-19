@@ -526,6 +526,15 @@ mod soroban_p22 {
     pub(crate) use soroban_env_host_p22 as soroban_env_host;
 
     pub(crate) mod contract;
+
+    // An adapter for some API breakage between p21 and p22.
+    pub(crate) const fn get_version_pre_release(v: &soroban_env_host::Version) -> u32 {
+        v.interface.pre_release
+    }
+
+    pub(crate) const fn get_version_protocol(v: &soroban_env_host::Version) -> u32 {
+        v.interface.protocol
+    }    
 }
 
 #[path = "."]
@@ -533,6 +542,15 @@ mod soroban_p21 {
     pub(crate) use soroban_env_host_p21 as soroban_env_host;
 
     pub(crate) mod contract;
+
+    // An adapter for some API breakage between p21 and p22.
+    pub(crate) const fn get_version_pre_release(v: &soroban_env_host::Version) -> u32 {
+        soroban_env_host::meta::get_pre_release_version(v.interface)
+    }
+
+    pub(crate) const fn get_version_protocol(v: &soroban_env_host::Version) -> u32 {
+        soroban_env_host::meta::get_ledger_protocol_version(v.interface)
+    }
 }
 
 // We alias the latest soroban as soroban_curr to help reduce churn in code
