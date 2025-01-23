@@ -261,6 +261,14 @@ HerderImpl::newSlotExternalized(bool synchronous, StellarValue const& value)
     safelyProcessSCPQueue(synchronous);
 }
 
+
+void HerderImpl::interrupt_quorum_checker() {
+    mLastQuorumMapIntersectionState.mInterruptFlag = true;
+    if (mLastQuorumMapIntersectionState.mInterruptHandle != nullptr) {
+        rust_bridge::interrupt_quorum_checker(rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(mLastQuorumMapIntersectionState.mInterruptHandle));
+    }
+}
+
 void
 HerderImpl::shutdown()
 {
@@ -272,8 +280,8 @@ HerderImpl::shutdown()
         // We want to interrupt any calculation-in-progress at shutdown to
         // avoid a long pause joining worker threads.
         CLOG_DEBUG(Herder,
-                   "Shutdown interrupting quorum transitive closure analysis.");
-        mLastQuorumMapIntersectionState.mInterruptFlag = true;
+                   "Shutdown interrupting quorum transitive closure analysis.");        
+        interrupt_quorum_checker();
     }
     mTransactionQueue.shutdown();
     if (mSorobanTransactionQueue)
@@ -1883,7 +1891,7 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
             CLOG_DEBUG(Herder, "Transitive closure of quorum has "
                                "changed, interrupting existing "
                                "analysis.");
-            mLastQuorumMapIntersectionState.mInterruptFlag = true;
+            interrupt_quorum_checker();
         }
     }
     else
@@ -1897,6 +1905,10 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
         auto& cfg = mApp.getConfig();
         releaseAssert(threadIsMain());
         auto seed = gRandomEngine();
+        mLastQuorumMapIntersectionState.mInterruptHandle = rust_bridge::create_quorum_checker_interrupt().into_raw();
+        // TODO: use a cfg flag to toggle this
+        // auto qic = QuorumIntersectionChecker::create(
+        //     qmap, cfg, mLastQuorumMapIntersectionState.mInterruptFlag, seed);
         auto qic = QuorumIntersectionChecker::create(
             qmap, cfg, mLastQuorumMapIntersectionState.mInterruptFlag, seed);
         auto ledger = trackingConsensusLedgerIndex();
@@ -1918,7 +1930,7 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
                     // and raise an alarm.
                     critical = QuorumIntersectionChecker::
                         getIntersectionCriticalGroups(
-                            qmap, cfg, hState.mInterruptFlag, seed);
+                            qmap, cfg, hState.mInterruptFlag, rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(hState.mInterruptHandle), seed);
                 }
                 app.postOnMainThread(
                     [ok, curr, ledger, nNodes, split, critical, &hState] {

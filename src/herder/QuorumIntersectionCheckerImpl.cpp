@@ -835,13 +835,12 @@ toCxxBuf(T const& t)
 
 RustQuorumIntersectionChecker::RustQuorumIntersectionChecker(
     QuorumIntersectionChecker::QuorumSetMap const& qmap,
-    std::optional<Config> const& cfg, std::atomic<bool>& interruptFlag,
+    std::optional<Config> const& cfg, rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
     stellar_default_random_engine::result_type seed, bool quiet)
     : mCfg(cfg)
     , mQmap(qmap)
     , mLogTrace(Logging::logTrace("SCP"))
     , mQuiet(quiet)
-    , mInterruptFlag(interruptFlag)
     , mRustQuorumChecker(nullptr)
 {
     rust::Vec<CxxBuf> nodesBuf;
@@ -858,7 +857,7 @@ RustQuorumIntersectionChecker::RustQuorumIntersectionChecker(
                        toShortString(mCfg, pair.first));            
         }
     }
-    mRustQuorumChecker = rust_bridge::create_quorum_checker(nodesBuf, quorumSetsBuf).into_raw();
+    mRustQuorumChecker = rust_bridge::create_quorum_checker(nodesBuf, quorumSetsBuf, std::move(interrupt)).into_raw();
 }
 
 std::pair<std::vector<NodeID>, std::vector<NodeID>>
@@ -900,41 +899,56 @@ std::shared_ptr<QuorumIntersectionChecker>
 QuorumIntersectionChecker::create(
     QuorumTracker::QuorumMap const& qmap, std::optional<Config> const& cfg,
     std::atomic<bool>& interruptFlag,
-    stellar_default_random_engine::result_type seed, bool quiet, bool v2)
+    stellar_default_random_engine::result_type seed, bool quiet)
 {
     return create(toQuorumIntersectionMap(qmap), cfg, interruptFlag, seed,
-                  quiet, v2);
+                  quiet);
 }
 
 std::shared_ptr<QuorumIntersectionChecker>
 QuorumIntersectionChecker::create(
     QuorumSetMap const& qmap, std::optional<Config> const& cfg,
     std::atomic<bool>& interruptFlag,
-    stellar_default_random_engine::result_type seed, bool quiet, bool v2)
+    stellar_default_random_engine::result_type seed, bool quiet)
 {
-    if (v2) 
-    {
-        return std::make_shared<RustQuorumIntersectionChecker>(
-            qmap, cfg, interruptFlag, seed, quiet);        
-    }
     return std::make_shared<QuorumIntersectionCheckerImpl>(
         qmap, cfg, interruptFlag, seed, quiet);
+}
+
+
+std::shared_ptr<QuorumIntersectionChecker>
+QuorumIntersectionChecker::create(QuorumTracker::QuorumMap const& qmap,
+    std::optional<stellar::Config> const& cfg,
+    rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
+    stellar_default_random_engine::result_type seed, bool quiet) 
+{
+    return create(toQuorumIntersectionMap(qmap), cfg, std::move(interrupt), seed, quiet);
+}
+
+std::shared_ptr<QuorumIntersectionChecker>
+QuorumIntersectionChecker::create(QuorumSetMap const& qmap, std::optional<stellar::Config> const& cfg,
+    rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
+    stellar_default_random_engine::result_type seed, bool quiet) 
+{
+    return std::make_shared<RustQuorumIntersectionChecker>(qmap, cfg, std::move(interrupt), seed, quiet);
 }
 
 std::set<std::set<NodeID>>
 QuorumIntersectionChecker::getIntersectionCriticalGroups(
     QuorumTracker::QuorumMap const& qmap, std::optional<Config> const& cfg,
     std::atomic<bool>& interruptFlag,
+    rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,    
     stellar_default_random_engine::result_type seed)
 {
     return getIntersectionCriticalGroups(toQuorumIntersectionMap(qmap), cfg,
-                                         interruptFlag, seed);
+                                         interruptFlag, std::move(interrupt), seed);
 }
 
 std::set<std::set<NodeID>>
 QuorumIntersectionChecker::getIntersectionCriticalGroups(
     QuorumSetMap const& qmap, std::optional<Config> const& cfg,
     std::atomic<bool>& interruptFlag,
+    rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,    
     stellar_default_random_engine::result_type seed)
 {
     // We're going to search for "intersection-critical" groups, by considering
@@ -1021,9 +1035,13 @@ QuorumIntersectionChecker::getIntersectionCriticalGroups(
         }
 
         // Check to see if this modified config is vulnerable to splitting.
-        auto checker = QuorumIntersectionChecker::create(test_qmap, cfg,
-                                                         interruptFlag, seed,
-                                                         /*quiet=*/true, /*v2=*/false);
+        // TODO: control with a config flag
+        // auto checker = QuorumIntersectionChecker::create(test_qmap, cfg,
+        //                                                  interruptFlag, seed,
+        //                                                  /*quiet=*/true);
+        auto checker = RustQuorumIntersectionChecker::create(test_qmap, cfg,
+                                                         std::move(interrupt), seed,
+                                                         /*quiet=*/true);
         if (checker->networkEnjoysQuorumIntersection())
         {
             CLOG_DEBUG(SCP,

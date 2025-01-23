@@ -15,6 +15,7 @@
 #include <deque>
 #include <memory>
 #include <vector>
+#include "rust/RustBridge.h"
 
 namespace medida
 {
@@ -338,7 +339,10 @@ class HerderImpl : public Herder
         Hash mLastCheckQuorumMapHash{};
         Hash mCheckingQuorumMapHash{};
         bool mRecalculating{false};
+        // for QIC v1
         std::atomic<bool> mInterruptFlag{false};
+        // for v2
+        rust_bridge::QuorumCheckerInterrupt* mInterruptHandle{nullptr};
         std::pair<std::vector<PublicKey>, std::vector<PublicKey>>
             mPotentialSplit{};
         std::set<std::set<PublicKey>> mIntersectionCriticalNodes{};
@@ -356,6 +360,8 @@ class HerderImpl : public Herder
         }
     };
     QuorumMapIntersectionState mLastQuorumMapIntersectionState;
+
+    void interrupt_quorum_checker();
 
     State mState;
     void setState(State st);

@@ -564,19 +564,16 @@ class RustQuorumIntersectionChecker : public stellar::QuorumIntersectionChecker
                       std::vector<stellar::NodeID>>
         mPotentialSplit;
 
-    // Interruption flag: setting this causes the QIC / MQEs to throw
-    // InterruptedException at the nearest convenient moment.
-    std::atomic<bool>& mInterruptFlag;
-
     stellar::rust_bridge::QuorumChecker* mRustQuorumChecker;
 
   public:
     RustQuorumIntersectionChecker(
         stellar::QuorumIntersectionChecker::QuorumSetMap const& qmap,
         std::optional<stellar::Config> const& cfg,
-        std::atomic<bool>& interruptFlag,
+        rust::Box<stellar::rust_bridge::QuorumCheckerInterrupt> interrupt,
         stellar::stellar_default_random_engine::result_type seed,
         bool quiet = false);
+
     bool networkEnjoysQuorumIntersection() const override;
 
     std::pair<std::vector<stellar::NodeID>, std::vector<stellar::NodeID>>

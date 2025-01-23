@@ -8,6 +8,7 @@
 #include <atomic>
 #include <memory>
 #include <optional>
+#include "rust/RustBridge.h"
 
 namespace stellar
 {
@@ -20,26 +21,41 @@ class QuorumIntersectionChecker
     using QuorumSetMap =
         stellar::UnorderedMap<stellar::NodeID, stellar::SCPQuorumSetPtr>;
 
+    // for v1 qic
     static std::shared_ptr<QuorumIntersectionChecker>
     create(QuorumTracker::QuorumMap const& qmap,
            std::optional<stellar::Config> const& cfg,
            std::atomic<bool>& interruptFlag,
-           stellar_default_random_engine::result_type seed, bool quiet = false, bool v2 = false);
+           stellar_default_random_engine::result_type seed, bool quiet = false);
 
     static std::shared_ptr<QuorumIntersectionChecker>
     create(QuorumSetMap const& qmap, std::optional<stellar::Config> const& cfg,
            std::atomic<bool>& interruptFlag,
-           stellar_default_random_engine::result_type seed, bool quiet = false, bool v2 = false);
+           stellar_default_random_engine::result_type seed, bool quiet = false);
+
+    // for V2
+    static std::shared_ptr<QuorumIntersectionChecker>
+    create(QuorumTracker::QuorumMap const& qmap,
+           std::optional<stellar::Config> const& cfg,
+           rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
+           stellar_default_random_engine::result_type seed, bool quiet = false);
+
+    static std::shared_ptr<QuorumIntersectionChecker>
+    create(QuorumSetMap const& qmap, std::optional<stellar::Config> const& cfg,
+           rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
+           stellar_default_random_engine::result_type seed, bool quiet = false);
 
     static std::set<std::set<NodeID>> getIntersectionCriticalGroups(
         QuorumTracker::QuorumMap const& qmap,
         std::optional<stellar::Config> const& cfg,
         std::atomic<bool>& interruptFlag,
+        rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
         stellar_default_random_engine::result_type seed);
 
     static std::set<std::set<NodeID>> getIntersectionCriticalGroups(
         QuorumSetMap const& qmap, std::optional<stellar::Config> const& cfg,
         std::atomic<bool>& interruptFlag,
+        rust::Box<rust_bridge::QuorumCheckerInterrupt> interrupt,
         stellar_default_random_engine::result_type seed);
 
     virtual ~QuorumIntersectionChecker(){};
