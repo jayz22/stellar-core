@@ -359,6 +359,7 @@
 #include "xdr/Stellar-types.h"
 #include <functional>
 #include <optional>
+#include "rust/RustBridge.h"
 
 namespace
 {
@@ -543,4 +544,44 @@ class QuorumIntersectionCheckerImpl : public stellar::QuorumIntersectionChecker
     getPotentialSplit() const override;
     size_t getMaxQuorumsFound() const override;
 };
+
+class RustQuorumIntersectionChecker : public stellar::QuorumIntersectionChecker
+{
+
+    std::optional<stellar::Config> const mCfg;
+
+    stellar::QuorumIntersectionChecker::QuorumSetMap const& mQmap;
+
+    bool mLogTrace;
+
+    // When run as a subroutine of criticality-checking, we inhibit
+    // INFO/ERROR/WARNING level messages.
+    bool mQuiet;
+
+    // State to capture a counterexample found during search, for later
+    // reporting.
+    mutable std::pair<std::vector<stellar::NodeID>,
+                      std::vector<stellar::NodeID>>
+        mPotentialSplit;
+
+    // Interruption flag: setting this causes the QIC / MQEs to throw
+    // InterruptedException at the nearest convenient moment.
+    std::atomic<bool>& mInterruptFlag;
+
+    stellar::rust_bridge::QuorumChecker* mRustQuorumChecker;
+
+  public:
+    RustQuorumIntersectionChecker(
+        stellar::QuorumIntersectionChecker::QuorumSetMap const& qmap,
+        std::optional<stellar::Config> const& cfg,
+        std::atomic<bool>& interruptFlag,
+        stellar::stellar_default_random_engine::result_type seed,
+        bool quiet = false);
+    bool networkEnjoysQuorumIntersection() const override;
+
+    std::pair<std::vector<stellar::NodeID>, std::vector<stellar::NodeID>>
+    getPotentialSplit() const override;
+    size_t getMaxQuorumsFound() const override;
+};
+
 }

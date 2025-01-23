@@ -33,7 +33,7 @@ TEST_CASE("quorum intersection basic 4-node", "[herder][quorumintersection]")
     PublicKey pkC = SecretKey::pseudoRandomForTesting().getPublicKey();
     PublicKey pkD = SecretKey::pseudoRandomForTesting().getPublicKey();
 
-    qm[pkA] = QuorumTracker::NodeInfo{
+    qm[pkA] = QuorumTracker::NodeInfo{ 
         make_shared<QS>(2, VK({pkB, pkC, pkD}), VQ{}), 0};
     qm[pkB] = QuorumTracker::NodeInfo{
         make_shared<QS>(2, VK({pkA, pkC, pkD}), VQ{}), 0};
@@ -47,6 +47,11 @@ TEST_CASE("quorum intersection basic 4-node", "[herder][quorumintersection]")
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
+
 }
 
 TEST_CASE("quorum non intersection basic 4-node",
@@ -73,6 +78,10 @@ TEST_CASE("quorum non intersection basic 4-node",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum non intersection 6-node", "[herder][quorumintersection]")
@@ -104,6 +113,10 @@ TEST_CASE("quorum non intersection 6-node", "[herder][quorumintersection]")
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum intersection 6-node with subquorums",
@@ -152,6 +165,10 @@ TEST_CASE("quorum intersection 6-node with subquorums",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum non intersection basic 6-node",
@@ -184,6 +201,10 @@ TEST_CASE("quorum non intersection basic 6-node",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum non intersection 6-node with subquorums",
@@ -235,6 +256,10 @@ TEST_CASE("quorum non intersection 6-node with subquorums",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum plausible non intersection", "[herder][quorumintersection]")
@@ -312,6 +337,10 @@ TEST_CASE("quorum plausible non intersection", "[herder][quorumintersection]")
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 uint32
@@ -451,6 +480,10 @@ TEST_CASE("quorum intersection 4-org fully-connected - elide all minquorums",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum intersection 3-org 3-node open line",
@@ -470,6 +503,10 @@ TEST_CASE("quorum intersection 3-org 3-node open line",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum intersection 3-org 2-node open line",
@@ -488,6 +525,10 @@ TEST_CASE("quorum intersection 3-org 2-node open line",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum intersection 3-org 3-node closed ring",
@@ -509,6 +550,10 @@ TEST_CASE("quorum intersection 3-org 3-node closed ring",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
 TEST_CASE("quorum intersection 3-org 3-node closed one-way ring",
@@ -535,6 +580,10 @@ TEST_CASE("quorum intersection 3-org 3-node closed one-way ring",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 3-org 2-node closed one-way ring",
@@ -561,6 +610,10 @@ TEST_CASE("quorum intersection 3-org 2-node closed one-way ring",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 3-org 2-node 2-of-3 asymmetric",
@@ -592,6 +645,10 @@ TEST_CASE("quorum intersection 3-org 2-node 2-of-3 asymmetric",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 8-org core-and-periphery dangling",
@@ -640,6 +697,10 @@ TEST_CASE("quorum intersection 8-org core-and-periphery dangling",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 8-org core-and-periphery balanced",
@@ -694,6 +755,10 @@ TEST_CASE("quorum intersection 8-org core-and-periphery balanced",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 8-org core-and-periphery unbalanced",
@@ -743,6 +808,10 @@ TEST_CASE("quorum intersection 8-org core-and-periphery unbalanced",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 6-org 1-node 4-null qsets",
@@ -798,6 +867,10 @@ TEST_CASE("quorum intersection 6-org 1-node 4-null qsets",
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
     REQUIRE(qic->getMaxQuorumsFound() == 0);
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 4-org 1-node 4-null qsets",
@@ -845,6 +918,10 @@ TEST_CASE("quorum intersection 4-org 1-node 4-null qsets",
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
     REQUIRE(qic->getMaxQuorumsFound() == 0);
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection 6-org 3-node fully-connected",
@@ -858,6 +935,10 @@ TEST_CASE("quorum intersection 6-org 3-node fully-connected",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection scaling test",
@@ -873,6 +954,10 @@ TEST_CASE("quorum intersection scaling test",
     auto qic =
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
@@ -990,6 +1075,10 @@ TEST_CASE("quorum intersection criticality",
         qm, cfg, flag, gRandomEngine());
     REQUIRE(groups.size() == 1);
     REQUIRE(groups == std::set<std::set<PublicKey>>{{orgs[3][0]}});
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
 TEST_CASE("quorum intersection finds smaller SCC with quorums",
@@ -1050,4 +1139,8 @@ TEST_CASE("quorum intersection finds smaller SCC with quorums",
         QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine());
     REQUIRE(qic->networkEnjoysQuorumIntersection());
     REQUIRE(qic->getMaxQuorumsFound() != 0);
+
+    auto qic2 =
+        QuorumIntersectionChecker::create(qm, cfg, flag, gRandomEngine(), false, true);
+    REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }

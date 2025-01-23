@@ -24,12 +24,12 @@ class QuorumIntersectionChecker
     create(QuorumTracker::QuorumMap const& qmap,
            std::optional<stellar::Config> const& cfg,
            std::atomic<bool>& interruptFlag,
-           stellar_default_random_engine::result_type seed, bool quiet = false);
+           stellar_default_random_engine::result_type seed, bool quiet = false, bool v2 = false);
 
     static std::shared_ptr<QuorumIntersectionChecker>
     create(QuorumSetMap const& qmap, std::optional<stellar::Config> const& cfg,
            std::atomic<bool>& interruptFlag,
-           stellar_default_random_engine::result_type seed, bool quiet = false);
+           stellar_default_random_engine::result_type seed, bool quiet = false, bool v2 = false);
 
     static std::set<std::set<NodeID>> getIntersectionCriticalGroups(
         QuorumTracker::QuorumMap const& qmap,

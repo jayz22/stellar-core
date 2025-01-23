@@ -173,6 +173,11 @@ mod rust_bridge {
         refundable_fee: i64,
     }
 
+    struct QuorumSplit {
+        left: Vec<String>,
+        right: Vec<String>,
+    }
+
     // The extern "Rust" block declares rust stuff we're going to export to C++.
     #[namespace = "stellar::rust_bridge"]
     extern "Rust" {
@@ -263,6 +268,16 @@ mod rust_bridge {
             xdr: &CxxBuf,
             depth_limit: u32,
         ) -> Result<bool>;
+
+        type QuorumChecker;
+
+        fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Box<QuorumChecker>>;
+
+        fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<bool>;
+
+        fn interrupt_quorum_checker(checker: Box<QuorumChecker>) -> Result<()>;
+
+        fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit>;
     }
 
     // And the extern "C++" block declares C++ stuff we're going to import to
@@ -1004,4 +1019,55 @@ pub(crate) fn compute_write_fee_per_1kb(
 ) -> Result<i64, Box<dyn std::error::Error>> {
     let hm = get_host_module_for_protocol(config_max_protocol, protocol_version)?;
     Ok((hm.compute_write_fee_per_1kb)(bucket_list_size, fee_config))
+}
+
+use stellar_quorum_checker::{Fbas, FbasAnalyzer, AsyncInterrupt, AsyncInterruptHandle};
+use rust_bridge::QuorumSplit;
+pub struct QuorumChecker 
+{
+    solver: FbasAnalyzer<AsyncInterrupt>,
+    interrupt_handle: AsyncInterruptHandle,
+}
+
+// Implement the methods for your wrapper type
+impl QuorumChecker {
+    fn new(fbas: Fbas) -> Self {
+        let cb = AsyncInterrupt::default();
+        let interrupt_handle = cb.get_handle();
+        let solver = FbasAnalyzer::new(fbas, cb).unwrap();
+        Self { solver, interrupt_handle }
+    }
+
+    fn check_quorum_intersection(&mut self) -> bool {
+        let found_disjoint_quorums = self.solver.solve();
+        !found_disjoint_quorums
+    }
+
+    fn interrupt(&self) {
+        self.interrupt_handle.interrupt_async();
+    }
+
+    fn get_potential_split(self) -> (Vec<String>, Vec<String>) {
+        self.solver.get_potential_split()
+    }
+}
+
+// Update your implementation functions to use the wrapper
+pub(crate) fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Box<QuorumChecker>, Box<dyn std::error::Error>> {
+    let fbas = Fbas::from_quorum_set_map_buf(nodes.iter(), quorum_set.iter())?;
+    Ok(Box::new(QuorumChecker::new(fbas)))
+}
+
+pub(crate) fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<bool, Box<dyn std::error::Error>> {
+    Ok(checker.check_quorum_intersection())
+}
+
+pub(crate) fn interrupt_quorum_checker(checker: Box<QuorumChecker>) -> Result<(), Box<dyn std::error::Error>> {
+    checker.interrupt();
+    Ok(())
+}
+
+pub(crate) fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
+    let (left, right) = checker.get_potential_split();
+    Ok(QuorumSplit { left, right })
 }
