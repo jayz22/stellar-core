@@ -566,6 +566,9 @@ class RustQuorumIntersectionChecker : public stellar::QuorumIntersectionChecker
 
     stellar::rust_bridge::QuorumChecker* mRustQuorumChecker;
 
+    // std::unique_ptr<stellar::rust_bridge::QuorumCheckerSuperType> mRustQC;
+    // std::unique_ptr<stellar::rust_bridge::QuorumCheckerSuperType> mInterrupt;
+
   public:
     RustQuorumIntersectionChecker(
         stellar::QuorumIntersectionChecker::QuorumSetMap const& qmap,

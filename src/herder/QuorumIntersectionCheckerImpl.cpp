@@ -858,26 +858,16 @@ RustQuorumIntersectionChecker::RustQuorumIntersectionChecker(
         }
     }
     mRustQuorumChecker = rust_bridge::create_quorum_checker(nodesBuf, quorumSetsBuf, std::move(interrupt)).into_raw();
+    // auto qc = rust_bridge::new_quorum_checker(nodesBuf, quorumSetsBuf);
+    // assert(qc.size() == 2);
+    // mRustQC = std::make_unique<stellar::rust_bridge::QuorumCheckerSuperType>(std::move(qc.at(0)));
+    // mInterrupt = std::make_unique<stellar::rust_bridge::QuorumCheckerSuperType>(std::move(qc.at(1)));
 }
 
 std::pair<std::vector<NodeID>, std::vector<NodeID>>
 RustQuorumIntersectionChecker::getPotentialSplit() const
 {
-    auto potentialSplit = rust_bridge::get_potential_quorum_split(rust::Box<rust_bridge::QuorumChecker>::from_raw(mRustQuorumChecker));
-    
-    std::vector<NodeID> leftNodes;
-    leftNodes.reserve(potentialSplit.left.size());
-    for (const auto& str : potentialSplit.left) {
-        leftNodes.push_back(KeyUtils::fromStrKey<NodeID>(std::string(str)));
-    }
-
-    std::vector<NodeID> rightNodes;
-    rightNodes.reserve(potentialSplit.right.size());
-    for (const auto& str : potentialSplit.right) {
-        rightNodes.push_back(KeyUtils::fromStrKey<NodeID>(std::string(str)));
-    }
-
-    return std::make_pair(std::move(leftNodes), std::move(rightNodes));
+    return mPotentialSplit;
 }
 
 size_t
@@ -894,6 +884,27 @@ RustQuorumIntersectionChecker::networkEnjoysQuorumIntersection() const
         throw QuorumIntersectionChecker::InterruptedException();
     } 
     return status == QuorumCheckerStatus::UNSAT;
+
+    // rust_bridge::network_enjoys_quorum_intersection();
+
+
+    // auto potentialSplit = rust_bridge::get_potential_quorum_split(rust::Box<rust_bridge::QuorumChecker>::from_raw(mRustQuorumChecker));
+    
+    // std::vector<NodeID> leftNodes;
+    // leftNodes.reserve(potentialSplit.left.size());
+    // for (const auto& str : potentialSplit.left) {
+    //     leftNodes.push_back(KeyUtils::fromStrKey<NodeID>(std::string(str)));
+    // }
+
+    // std::vector<NodeID> rightNodes;
+    // rightNodes.reserve(potentialSplit.right.size());
+    // for (const auto& str : potentialSplit.right) {
+    //     rightNodes.push_back(KeyUtils::fromStrKey<NodeID>(std::string(str)));
+    // }
+
+    // return std::make_pair(std::move(leftNodes), std::move(rightNodes));
+
+
 }
 } // end namespace
 

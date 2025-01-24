@@ -992,6 +992,36 @@ TEST_CASE("quorum intersection scaling test",
 //                       QuorumIntersectionChecker::InterruptedException);
 //     canceller2.join();
 // }
+
+
+
+
+template <typename T>
+std::vector<uint8_t>
+toVec(T const& t)
+{
+    return std::vector<uint8_t>(xdr::xdr_to_opaque(t));
+}
+
+template <typename T>
+CxxBuf
+toCxxBuf(T const& t)
+{
+    return CxxBuf{std::make_unique<std::vector<uint8_t>>(toVec(t))};
+}
+
+QuorumIntersectionChecker::QuorumSetMap
+toQuorumIntersectionMap(QuorumTracker::QuorumMap const& qmap)
+{
+    QuorumIntersectionChecker::QuorumSetMap ret;
+    for (auto const& elem : qmap)
+    {
+        ret[elem.first] = elem.second.mQuorumSet;
+    }
+    return ret;
+}
+
+
 TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
 {
     auto orgs = generateOrgs(16);
@@ -999,32 +1029,35 @@ TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
     Config cfg(getTestConfig());
     cfg = configureShortNames(cfg, orgs);
     // this will fail due to double free
+
+    auto mQmap = toQuorumIntersectionMap(qm);
+    rust::Vec<CxxBuf> nodesBuf;
+    rust::Vec<CxxBuf> quorumSetsBuf;
+    nodesBuf.reserve(mQmap.size());
+    quorumSetsBuf.reserve(mQmap.size());
+    for (auto const& pair: mQmap)
     {
-        rust_bridge::QuorumCheckerInterrupt* interruptHandler = rust_bridge::create_quorum_checker_interrupt().into_raw();
-        auto qic = QuorumIntersectionChecker::create(qm, cfg, rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(interruptHandler),
-                                                    gRandomEngine());
-        std::thread canceller([interruptHandler]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            rust_bridge::interrupt_quorum_checker(rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(interruptHandler));
-        });
-        REQUIRE_THROWS_AS(qic->networkEnjoysQuorumIntersection(),
-                        QuorumIntersectionChecker::InterruptedException);
-        canceller.join();
+        if (pair.second) {
+            nodesBuf.push_back(toCxxBuf(pair.first));
+            quorumSetsBuf.push_back(toCxxBuf(*pair.second));
+        }
     }
-    {
-        std::atomic<bool> interruptFlag{false};
-        rust_bridge::QuorumCheckerInterrupt* interruptHandler = rust_bridge::create_quorum_checker_interrupt().into_raw();
-        auto qic = QuorumIntersectionChecker::create(qm, cfg, rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(interruptHandler),
-                                                    gRandomEngine());
-        std::thread canceller([interruptHandler]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            rust_bridge::interrupt_quorum_checker(rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(interruptHandler));
-        });
-        REQUIRE_THROWS_AS(qic->getIntersectionCriticalGroups(qm, cfg, interruptFlag, rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(interruptHandler),
-                                                         gRandomEngine()),
-                      QuorumIntersectionChecker::InterruptedException);
-        canceller.join();
-    }
+
+    auto res = rust_bridge::new_quorum_checker(nodesBuf, quorumSetsBuf);
+    // auto checker = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[0]);
+    // auto interrupt = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[1]);
+    QuorumCheckerStatus status = QuorumCheckerStatus::UNKNOWN;
+    std::thread canceller([&res]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        rust_bridge::interrupt_quorum_checker_async(res[1]);
+    });
+    auto split = rust_bridge::network_enjoys_quorum_intersection(res[0], status);
+    REQUIRE(status == QuorumCheckerStatus::UNKNOWN);
+    canceller.join();
+
+    auto interrupt = rust_bridge::create_super_quorum_checker_interrupt().into_raw();
+    rust_bridge::interrupt_quorum_checker_async(*interrupt);
+
 }
 
 static void

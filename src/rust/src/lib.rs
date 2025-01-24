@@ -184,6 +184,11 @@ mod rust_bridge {
         right: Vec<String>,
     }
 
+    struct CxxQuorumSplit<'a> {
+        left: &'a CxxVector<CxxString>,
+        right: &'a CxxVector<CxxString>,
+    }
+
     // The extern "Rust" block declares rust stuff we're going to export to C++.
     #[namespace = "stellar::rust_bridge"]
     extern "Rust" {
@@ -287,6 +292,13 @@ mod rust_bridge {
         fn interrupt_quorum_checker(interrupt: Box<QuorumCheckerInterrupt>) -> Result<()>;
 
         fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit>;
+
+
+        type QuorumCheckerSuperType;
+        fn new_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Vec<QuorumCheckerSuperType>>;
+        fn network_enjoys_quorum_intersection(checker: &mut QuorumCheckerSuperType, status: &mut QuorumCheckerStatus) -> Result<QuorumSplit>;
+        fn interrupt_quorum_checker_async(handle: &mut QuorumCheckerSuperType) -> Result<()>;
+        fn create_super_quorum_checker_interrupt() -> Box<QuorumCheckerSuperType>;
     }
 
     // And the extern "C++" block declares C++ stuff we're going to import to
@@ -1031,6 +1043,7 @@ pub(crate) fn compute_write_fee_per_1kb(
     Ok((hm.compute_write_fee_per_1kb)(bucket_list_size, fee_config))
 }
 
+use stellar_quorum_checker::AsyncInterruptHandle;
 use stellar_quorum_checker::{Fbas, FbasAnalyzer, AsyncInterrupt};
 use rust_bridge::QuorumSplit;
 
@@ -1066,4 +1079,45 @@ pub(crate) fn interrupt_quorum_checker(interrupt: Box<QuorumCheckerInterrupt>) -
 pub(crate) fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
     let (left, right) = checker.0.get_potential_split();
     Ok(QuorumSplit { left, right })
+}
+
+
+pub enum QuorumCheckerSuperType {
+    FbasAnalyzer(FbasAnalyzer<AsyncInterrupt>),
+    Interrupt(AsyncInterruptHandle),
+}
+
+pub(crate) fn new_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Vec<QuorumCheckerSuperType>, Box<dyn std::error::Error>> {
+    let cb = AsyncInterrupt::default();
+    let handle = cb.get_handle();
+    let fbas = Fbas::from_quorum_set_map_buf(nodes.iter(), quorum_set.iter())?;
+    let solver = FbasAnalyzer::new(fbas, cb).unwrap();
+    Ok(vec![QuorumCheckerSuperType::FbasAnalyzer(solver), QuorumCheckerSuperType::Interrupt(handle)])
+}
+
+pub(crate) fn network_enjoys_quorum_intersection(checker: &mut QuorumCheckerSuperType, status: &mut QuorumCheckerStatus) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
+    if let QuorumCheckerSuperType::FbasAnalyzer(solver) = checker {
+        match solver.solve() {
+            stellar_quorum_checker::SolveStatus::SAT(_) => *status = QuorumCheckerStatus::SAT,
+            stellar_quorum_checker::SolveStatus::UNSAT =>  *status = QuorumCheckerStatus::UNSAT,
+            stellar_quorum_checker::SolveStatus::UNKNOWN =>  *status = QuorumCheckerStatus::UNKNOWN,
+        };
+        let split = solver.get_potential_split();
+        Ok(QuorumSplit{ left: split.0, right: split.1 })
+    } else {
+        panic!("not a solver")
+    }
+}
+
+pub (crate) fn interrupt_quorum_checker_async(handle: &mut QuorumCheckerSuperType) -> Result<(), Box<dyn std::error::Error>> {
+    if let QuorumCheckerSuperType::Interrupt(handle) = handle {
+        handle.interrupt_async();
+        Ok(())
+    } else {
+        panic!("not a interrupt handle")
+    }
+}
+
+pub(crate) fn create_super_quorum_checker_interrupt() -> Box<QuorumCheckerSuperType> {
+    Box::new(QuorumCheckerSuperType::Interrupt(AsyncInterrupt::default().get_handle()))
 }
