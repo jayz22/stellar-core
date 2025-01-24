@@ -570,7 +570,7 @@ class RustQuorumIntersectionChecker : public stellar::QuorumIntersectionChecker
     RustQuorumIntersectionChecker(
         stellar::QuorumIntersectionChecker::QuorumSetMap const& qmap,
         std::optional<stellar::Config> const& cfg,
-        rust::Box<stellar::rust_bridge::QuorumCheckerInterrupt> interrupt,
+        rust::Box<stellar::rust_bridge::QuorumCheckerInterrupt>&& interrupt,
         stellar::stellar_default_random_engine::result_type seed,
         bool quiet = false);
 

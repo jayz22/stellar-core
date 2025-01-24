@@ -173,6 +173,12 @@ mod rust_bridge {
         refundable_fee: i64,
     }
 
+    enum QuorumCheckerStatus {
+        SAT = 0,
+        UNSAT = 1,
+        UNKNOWN = 2,
+    }
+
     struct QuorumSplit {
         left: Vec<String>,
         right: Vec<String>,
@@ -270,12 +276,15 @@ mod rust_bridge {
         ) -> Result<bool>;
 
         type QuorumChecker;
+        type QuorumCheckerInterrupt;
 
-        fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Box<QuorumChecker>>;
+        fn create_quorum_checker_interrupt() -> Box<QuorumCheckerInterrupt>;
 
-        fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<bool>;
+        fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>, interrupt: Box<QuorumCheckerInterrupt>) -> Result<Box<QuorumChecker>>;
 
-        fn interrupt_quorum_checker(checker: Box<QuorumChecker>) -> Result<()>;
+        fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<QuorumCheckerStatus>;
+
+        fn interrupt_quorum_checker(interrupt: Box<QuorumCheckerInterrupt>) -> Result<()>;
 
         fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit>;
     }
@@ -515,6 +524,7 @@ use rust_bridge::CxxTransactionResources;
 use rust_bridge::CxxWriteFeeConfiguration;
 use rust_bridge::FeePair;
 use rust_bridge::InvokeHostFunctionOutput;
+use rust_bridge::QuorumCheckerStatus;
 use rust_bridge::RustBuf;
 use rust_bridge::SorobanVersionInfo;
 
@@ -1021,53 +1031,39 @@ pub(crate) fn compute_write_fee_per_1kb(
     Ok((hm.compute_write_fee_per_1kb)(bucket_list_size, fee_config))
 }
 
-use stellar_quorum_checker::{Fbas, FbasAnalyzer, AsyncInterrupt, AsyncInterruptHandle};
+use stellar_quorum_checker::{Fbas, FbasAnalyzer, AsyncInterrupt};
 use rust_bridge::QuorumSplit;
-pub struct QuorumChecker 
+
+pub struct QuorumChecker(FbasAnalyzer<AsyncInterrupt>);
+pub struct QuorumCheckerInterrupt(AsyncInterrupt);
+
+pub(crate) fn create_quorum_checker_interrupt() -> Box<QuorumCheckerInterrupt> {
+    Box::new(QuorumCheckerInterrupt(AsyncInterrupt::default()))
+}
+// Bridge implementation functions
+pub(crate) fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>, interrupt: Box<QuorumCheckerInterrupt>) 
+    -> Result<Box<QuorumChecker>, Box<dyn std::error::Error>> 
 {
-    solver: FbasAnalyzer<AsyncInterrupt>,
-    interrupt_handle: AsyncInterruptHandle,
-}
-
-// Implement the methods for your wrapper type
-impl QuorumChecker {
-    fn new(fbas: Fbas) -> Self {
-        let cb = AsyncInterrupt::default();
-        let interrupt_handle = cb.get_handle();
-        let solver = FbasAnalyzer::new(fbas, cb).unwrap();
-        Self { solver, interrupt_handle }
-    }
-
-    fn check_quorum_intersection(&mut self) -> bool {
-        let found_disjoint_quorums = self.solver.solve();
-        !found_disjoint_quorums
-    }
-
-    fn interrupt(&self) {
-        self.interrupt_handle.interrupt_async();
-    }
-
-    fn get_potential_split(self) -> (Vec<String>, Vec<String>) {
-        self.solver.get_potential_split()
-    }
-}
-
-// Update your implementation functions to use the wrapper
-pub(crate) fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Box<QuorumChecker>, Box<dyn std::error::Error>> {
     let fbas = Fbas::from_quorum_set_map_buf(nodes.iter(), quorum_set.iter())?;
-    Ok(Box::new(QuorumChecker::new(fbas)))
+    let solver = FbasAnalyzer::new(fbas, interrupt.0).unwrap();
+    Ok(Box::new(QuorumChecker(solver)))
 }
 
-pub(crate) fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<bool, Box<dyn std::error::Error>> {
-    Ok(checker.check_quorum_intersection())
+pub(crate) fn check_quorum_intersection(mut checker: Box<QuorumChecker>) -> Result<QuorumCheckerStatus, Box<dyn std::error::Error>> {
+    let status = match checker.0.solve() {
+        stellar_quorum_checker::SolveStatus::SAT(_) => QuorumCheckerStatus::SAT,
+        stellar_quorum_checker::SolveStatus::UNSAT => QuorumCheckerStatus::UNSAT,
+        stellar_quorum_checker::SolveStatus::UNKNOWN => QuorumCheckerStatus::UNKNOWN,
+    };
+    Ok(status)
 }
 
-pub(crate) fn interrupt_quorum_checker(checker: Box<QuorumChecker>) -> Result<(), Box<dyn std::error::Error>> {
-    checker.interrupt();
+pub(crate) fn interrupt_quorum_checker(interrupt: Box<QuorumCheckerInterrupt>) -> Result<(), Box<dyn std::error::Error>> {
+    interrupt.0.get_handle().interrupt_async();
     Ok(())
 }
 
 pub(crate) fn get_potential_quorum_split(checker: Box<QuorumChecker>) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
-    let (left, right) = checker.get_potential_split();
+    let (left, right) = checker.0.get_potential_split();
     Ok(QuorumSplit { left, right })
 }
