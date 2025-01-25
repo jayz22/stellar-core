@@ -576,7 +576,7 @@ dependencies = [
 [[package]]
 name = "stellar-quorum-checker"
 version = "0.1.0"
-source = "git+https://github.com/jayz22/stellar-quorum-checker?rev=415844011ce8e06263ac77f65db2eebced3e0f97#415844011ce8e06263ac77f65db2eebced3e0f97"
+source = "git+https://github.com/jayz22/stellar-quorum-checker?rev=f6845f68f1a608192049d5cb593b9ecf13d6f1b6#f6845f68f1a608192049d5cb593b9ecf13d6f1b6"
 dependencies = [
  "batsat",
  "itertools",

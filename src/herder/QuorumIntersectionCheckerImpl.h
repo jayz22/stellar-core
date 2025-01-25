@@ -566,14 +566,11 @@ class RustQuorumIntersectionChecker : public stellar::QuorumIntersectionChecker
 
     stellar::rust_bridge::QuorumChecker* mRustQuorumChecker;
 
-    // std::unique_ptr<stellar::rust_bridge::QuorumCheckerSuperType> mRustQC;
-    // std::unique_ptr<stellar::rust_bridge::QuorumCheckerSuperType> mInterrupt;
-
   public:
     RustQuorumIntersectionChecker(
         stellar::QuorumIntersectionChecker::QuorumSetMap const& qmap,
         std::optional<stellar::Config> const& cfg,
-        rust::Box<stellar::rust_bridge::QuorumCheckerInterrupt>&& interrupt,
+        stellar::rust_bridge::QuorumCheckerInterrupt* interrupt,
         stellar::stellar_default_random_engine::result_type seed,
         bool quiet = false);
 

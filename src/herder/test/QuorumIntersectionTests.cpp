@@ -49,7 +49,7 @@ TEST_CASE("quorum intersection basic 4-node", "[herder][quorumintersection]")
     REQUIRE(qic->networkEnjoysQuorumIntersection());
     
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 
 }
@@ -80,7 +80,7 @@ TEST_CASE("quorum non intersection basic 4-node",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 
     // this will fail
@@ -120,7 +120,7 @@ TEST_CASE("quorum non intersection 6-node", "[herder][quorumintersection]")
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -172,7 +172,7 @@ TEST_CASE("quorum intersection 6-node with subquorums",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -208,7 +208,7 @@ TEST_CASE("quorum non intersection basic 6-node",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -263,7 +263,7 @@ TEST_CASE("quorum non intersection 6-node with subquorums",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -344,7 +344,7 @@ TEST_CASE("quorum plausible non intersection", "[herder][quorumintersection]")
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -487,7 +487,7 @@ TEST_CASE("quorum intersection 4-org fully-connected - elide all minquorums",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -510,7 +510,7 @@ TEST_CASE("quorum intersection 3-org 3-node open line",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -532,7 +532,7 @@ TEST_CASE("quorum intersection 3-org 2-node open line",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -557,7 +557,7 @@ TEST_CASE("quorum intersection 3-org 3-node closed ring",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());    
 }
 
@@ -587,7 +587,7 @@ TEST_CASE("quorum intersection 3-org 3-node closed one-way ring",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -617,7 +617,7 @@ TEST_CASE("quorum intersection 3-org 2-node closed one-way ring",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -652,7 +652,7 @@ TEST_CASE("quorum intersection 3-org 2-node 2-of-3 asymmetric",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -704,7 +704,7 @@ TEST_CASE("quorum intersection 8-org core-and-periphery dangling",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -762,7 +762,7 @@ TEST_CASE("quorum intersection 8-org core-and-periphery balanced",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -815,7 +815,7 @@ TEST_CASE("quorum intersection 8-org core-and-periphery unbalanced",
     REQUIRE(!qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(!qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -874,7 +874,7 @@ TEST_CASE("quorum intersection 6-org 1-node 4-null qsets",
     REQUIRE(qic->getMaxQuorumsFound() == 0);
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -925,7 +925,7 @@ TEST_CASE("quorum intersection 4-org 1-node 4-null qsets",
     REQUIRE(qic->getMaxQuorumsFound() == 0);
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -942,7 +942,7 @@ TEST_CASE("quorum intersection 6-org 3-node fully-connected",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -961,9 +961,74 @@ TEST_CASE("quorum intersection scaling test",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
+
+TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
+{
+    auto orgs = generateOrgs(7);
+    auto qm = interconnectOrgs(orgs, [](size_t i, size_t j) { return true; });
+    Config cfg(getTestConfig());
+    cfg = configureShortNames(cfg, orgs);
+    std::atomic<bool> interruptFlag{false};
+    auto interrupt = rust_bridge::create_quorum_checker_interrupt().into_raw();
+    
+    auto qic = QuorumIntersectionChecker::create(qm, cfg, interrupt,
+                                                 gRandomEngine());
+                                                 
+    std::thread canceller([interrupt]() {
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        // interruptFlag = true;
+        rust_bridge::interrupt_quorum_checker(*interrupt);
+    });
+    REQUIRE_THROWS_AS(qic->networkEnjoysQuorumIntersection(),
+                      QuorumIntersectionChecker::InterruptedException);
+    canceller.join();
+
+    rust_bridge::reset_interrupt(*interrupt);
+    // interruptFlag = false;
+    std::thread canceller2([interrupt]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        rust_bridge::interrupt_quorum_checker(*interrupt);
+        // interruptFlag = true;
+    });
+    // rust_bridge::interrupt_quorum_checker(*interrupt);
+    rust_bridge::print_interrupt_flag(*interrupt);
+    REQUIRE_THROWS_AS(QuorumIntersectionChecker::getIntersectionCriticalGroups(qm, cfg, interruptFlag, interrupt,
+                                                         gRandomEngine()),
+                      QuorumIntersectionChecker::InterruptedException);
+    canceller2.join();
+}
+
+
+
+
+// template <typename T>
+// std::vector<uint8_t>
+// toVec(T const& t)
+// {
+//     return std::vector<uint8_t>(xdr::xdr_to_opaque(t));
+// }
+
+// template <typename T>
+// CxxBuf
+// toCxxBuf(T const& t)
+// {
+//     return CxxBuf{std::make_unique<std::vector<uint8_t>>(toVec(t))};
+// }
+
+// QuorumIntersectionChecker::QuorumSetMap
+// toQuorumIntersectionMap(QuorumTracker::QuorumMap const& qmap)
+// {
+//     QuorumIntersectionChecker::QuorumSetMap ret;
+//     for (auto const& elem : qmap)
+//     {
+//         ret[elem.first] = elem.second.mQuorumSet;
+//     }
+//     return ret;
+// }
+
 
 // TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
 // {
@@ -971,94 +1036,37 @@ TEST_CASE("quorum intersection scaling test",
 //     auto qm = interconnectOrgs(orgs, [](size_t i, size_t j) { return true; });
 //     Config cfg(getTestConfig());
 //     cfg = configureShortNames(cfg, orgs);
-//     std::atomic<bool> interruptFlag{false};
-//     auto qic = QuorumIntersectionChecker::create(qm, cfg, interruptFlag,
-//                                                  gRandomEngine());
-//     std::thread canceller([&interruptFlag]() {
+//     // this will fail due to double free
+
+//     auto mQmap = toQuorumIntersectionMap(qm);
+//     rust::Vec<CxxBuf> nodesBuf;
+//     rust::Vec<CxxBuf> quorumSetsBuf;
+//     nodesBuf.reserve(mQmap.size());
+//     quorumSetsBuf.reserve(mQmap.size());
+//     for (auto const& pair: mQmap)
+//     {
+//         if (pair.second) {
+//             nodesBuf.push_back(toCxxBuf(pair.first));
+//             quorumSetsBuf.push_back(toCxxBuf(*pair.second));
+//         }
+//     }
+
+//     auto res = rust_bridge::new_quorum_checker(nodesBuf, quorumSetsBuf);
+//     // auto checker = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[0]);
+//     // auto interrupt = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[1]);
+//     QuorumCheckerStatus status = QuorumCheckerStatus::UNKNOWN;
+//     std::thread canceller([&res]() {
 //         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//         interruptFlag = true;
+//         rust_bridge::interrupt_quorum_checker_async(res[1]);
 //     });
-//     REQUIRE_THROWS_AS(qic->networkEnjoysQuorumIntersection(),
-//                       QuorumIntersectionChecker::InterruptedException);
+//     auto split = rust_bridge::network_enjoys_quorum_intersection(res[0], status);
+//     REQUIRE(status == QuorumCheckerStatus::UNKNOWN);
 //     canceller.join();
-//     interruptFlag = false;
 
-//     std::thread canceller2([&interruptFlag]() {
-//         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//         interruptFlag = true;
-//     });
-//     REQUIRE_THROWS_AS(qic->getIntersectionCriticalGroups(qm, cfg, interruptFlag,
-//                                                          gRandomEngine()),
-//                       QuorumIntersectionChecker::InterruptedException);
-//     canceller2.join();
+//     auto interrupt = rust_bridge::create_super_quorum_checker_interrupt().into_raw();
+//     rust_bridge::interrupt_quorum_checker_async(*interrupt);
+
 // }
-
-
-
-
-template <typename T>
-std::vector<uint8_t>
-toVec(T const& t)
-{
-    return std::vector<uint8_t>(xdr::xdr_to_opaque(t));
-}
-
-template <typename T>
-CxxBuf
-toCxxBuf(T const& t)
-{
-    return CxxBuf{std::make_unique<std::vector<uint8_t>>(toVec(t))};
-}
-
-QuorumIntersectionChecker::QuorumSetMap
-toQuorumIntersectionMap(QuorumTracker::QuorumMap const& qmap)
-{
-    QuorumIntersectionChecker::QuorumSetMap ret;
-    for (auto const& elem : qmap)
-    {
-        ret[elem.first] = elem.second.mQuorumSet;
-    }
-    return ret;
-}
-
-
-TEST_CASE("quorum intersection interruption", "[herder][quorumintersection]")
-{
-    auto orgs = generateOrgs(16);
-    auto qm = interconnectOrgs(orgs, [](size_t i, size_t j) { return true; });
-    Config cfg(getTestConfig());
-    cfg = configureShortNames(cfg, orgs);
-    // this will fail due to double free
-
-    auto mQmap = toQuorumIntersectionMap(qm);
-    rust::Vec<CxxBuf> nodesBuf;
-    rust::Vec<CxxBuf> quorumSetsBuf;
-    nodesBuf.reserve(mQmap.size());
-    quorumSetsBuf.reserve(mQmap.size());
-    for (auto const& pair: mQmap)
-    {
-        if (pair.second) {
-            nodesBuf.push_back(toCxxBuf(pair.first));
-            quorumSetsBuf.push_back(toCxxBuf(*pair.second));
-        }
-    }
-
-    auto res = rust_bridge::new_quorum_checker(nodesBuf, quorumSetsBuf);
-    // auto checker = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[0]);
-    // auto interrupt = rust::Box<rust_bridge::QuorumCheckerSuperType>(res[1]);
-    QuorumCheckerStatus status = QuorumCheckerStatus::UNKNOWN;
-    std::thread canceller([&res]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        rust_bridge::interrupt_quorum_checker_async(res[1]);
-    });
-    auto split = rust_bridge::network_enjoys_quorum_intersection(res[0], status);
-    REQUIRE(status == QuorumCheckerStatus::UNKNOWN);
-    canceller.join();
-
-    auto interrupt = rust_bridge::create_super_quorum_checker_interrupt().into_raw();
-    rust_bridge::interrupt_quorum_checker_async(*interrupt);
-
-}
 
 static void
 debugQmap(Config const& cfg, QuorumTracker::QuorumMap const& qm)
@@ -1144,12 +1152,12 @@ TEST_CASE("quorum intersection criticality",
     REQUIRE(qic->networkEnjoysQuorumIntersection());
 
     auto groups = QuorumIntersectionChecker::getIntersectionCriticalGroups(
-        qm, cfg, flag, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        qm, cfg, flag, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(groups.size() == 1);
     REQUIRE(groups == std::set<std::set<PublicKey>>{{orgs[3][0]}});
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }
 
@@ -1213,6 +1221,6 @@ TEST_CASE("quorum intersection finds smaller SCC with quorums",
     REQUIRE(qic->getMaxQuorumsFound() != 0);
 
     auto qic2 =
-        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt(), gRandomEngine());
+        QuorumIntersectionChecker::create(qm, cfg, rust_bridge::create_quorum_checker_interrupt().into_raw(), gRandomEngine());
     REQUIRE(qic2->networkEnjoysQuorumIntersection());
 }

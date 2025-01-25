@@ -265,7 +265,8 @@ HerderImpl::newSlotExternalized(bool synchronous, StellarValue const& value)
 void HerderImpl::interrupt_quorum_checker() {
     mLastQuorumMapIntersectionState.mInterruptFlag = true;
     if (mLastQuorumMapIntersectionState.mInterruptHandle != nullptr) {
-        rust_bridge::interrupt_quorum_checker(rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(mLastQuorumMapIntersectionState.mInterruptHandle));
+        // TODO construct a Box, hand it over, then this pointer becomes null
+        rust_bridge::interrupt_quorum_checker(*mLastQuorumMapIntersectionState.mInterruptHandle);
     }
 }
 
@@ -1910,7 +1911,7 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
         // auto qic = QuorumIntersectionChecker::create(
         //     qmap, cfg, mLastQuorumMapIntersectionState.mInterruptFlag, seed);
         auto qic = QuorumIntersectionChecker::create(
-            qmap, cfg, mLastQuorumMapIntersectionState.mInterruptFlag, seed);
+            qmap, cfg, mLastQuorumMapIntersectionState.mInterruptHandle, seed);
         auto ledger = trackingConsensusLedgerIndex();
         auto nNodes = qmap.size();
         auto& hState = mLastQuorumMapIntersectionState;
@@ -1930,7 +1931,7 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
                     // and raise an alarm.
                     critical = QuorumIntersectionChecker::
                         getIntersectionCriticalGroups(
-                            qmap, cfg, hState.mInterruptFlag, rust::Box<rust_bridge::QuorumCheckerInterrupt>::from_raw(hState.mInterruptHandle), seed);
+                            qmap, cfg, hState.mInterruptFlag, hState.mInterruptHandle, seed);
                 }
                 app.postOnMainThread(
                     [ok, curr, ledger, nNodes, split, critical, &hState] {
