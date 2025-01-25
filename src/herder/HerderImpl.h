@@ -9,13 +9,13 @@
 #include "herder/PendingEnvelopes.h"
 #include "herder/TransactionQueue.h"
 #include "herder/Upgrades.h"
+#include "rust/RustBridge.h"
 #include "util/Timer.h"
 #include "util/UnorderedMap.h"
 #include "util/XDROperators.h"
 #include <deque>
 #include <memory>
 #include <vector>
-#include "rust/RustBridge.h"
 
 namespace medida
 {

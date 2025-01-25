@@ -261,12 +261,15 @@ HerderImpl::newSlotExternalized(bool synchronous, StellarValue const& value)
     safelyProcessSCPQueue(synchronous);
 }
 
-
-void HerderImpl::interrupt_quorum_checker() {
+void
+HerderImpl::interrupt_quorum_checker()
+{
     mLastQuorumMapIntersectionState.mInterruptFlag = true;
-    if (mLastQuorumMapIntersectionState.mInterruptHandle != nullptr) {
+    if (mLastQuorumMapIntersectionState.mInterruptHandle != nullptr)
+    {
         // TODO construct a Box, hand it over, then this pointer becomes null
-        rust_bridge::interrupt_quorum_checker(*mLastQuorumMapIntersectionState.mInterruptHandle);
+        rust_bridge::interrupt_quorum_checker(
+            *mLastQuorumMapIntersectionState.mInterruptHandle);
     }
 }
 
@@ -281,7 +284,7 @@ HerderImpl::shutdown()
         // We want to interrupt any calculation-in-progress at shutdown to
         // avoid a long pause joining worker threads.
         CLOG_DEBUG(Herder,
-                   "Shutdown interrupting quorum transitive closure analysis.");        
+                   "Shutdown interrupting quorum transitive closure analysis.");
         interrupt_quorum_checker();
     }
     mTransactionQueue.shutdown();
@@ -1906,7 +1909,8 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
         auto& cfg = mApp.getConfig();
         releaseAssert(threadIsMain());
         auto seed = gRandomEngine();
-        mLastQuorumMapIntersectionState.mInterruptHandle = rust_bridge::create_quorum_checker_interrupt().into_raw();
+        mLastQuorumMapIntersectionState.mInterruptHandle =
+            rust_bridge::create_quorum_checker_interrupt().into_raw();
         // TODO: use a cfg flag to toggle this
         // auto qic = QuorumIntersectionChecker::create(
         //     qmap, cfg, mLastQuorumMapIntersectionState.mInterruptFlag, seed);
@@ -1931,7 +1935,8 @@ HerderImpl::checkAndMaybeReanalyzeQuorumMap()
                     // and raise an alarm.
                     critical = QuorumIntersectionChecker::
                         getIntersectionCriticalGroups(
-                            qmap, cfg, hState.mInterruptFlag, hState.mInterruptHandle, seed);
+                            qmap, cfg, hState.mInterruptFlag,
+                            hState.mInterruptHandle, seed);
                 }
                 app.postOnMainThread(
                     [ok, curr, ledger, nNodes, split, critical, &hState] {

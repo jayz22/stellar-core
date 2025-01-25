@@ -281,7 +281,11 @@ mod rust_bridge {
 
         fn create_quorum_checker_interrupt() -> Box<QuorumCheckerInterrupt>;
 
-        fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>, interrupt: &QuorumCheckerInterrupt) -> Result<Box<QuorumChecker>>;
+        fn create_quorum_checker(
+            nodes: &Vec<CxxBuf>,
+            quorum_set: &Vec<CxxBuf>,
+            interrupt: &QuorumCheckerInterrupt,
+        ) -> Result<Box<QuorumChecker>>;
 
         fn check_quorum_intersection(checker: &mut QuorumChecker) -> Result<QuorumCheckerStatus>;
 
@@ -292,7 +296,6 @@ mod rust_bridge {
         fn print_interrupt_flag(interrupt: &QuorumCheckerInterrupt) -> Result<()>;
 
         fn get_potential_quorum_split(checker: &QuorumChecker) -> Result<QuorumSplit>;
-
 
         // type QuorumCheckerSuperType;
         // fn new_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>) -> Result<Vec<QuorumCheckerSuperType>>;
@@ -1043,9 +1046,12 @@ pub(crate) fn compute_write_fee_per_1kb(
     Ok((hm.compute_write_fee_per_1kb)(bucket_list_size, fee_config))
 }
 
-use stellar_quorum_checker::{Fbas, FbasAnalyzer, Callbacks};
 use rust_bridge::QuorumSplit;
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use stellar_quorum_checker::{Callbacks, Fbas, FbasAnalyzer};
 
 pub struct QuorumChecker(FbasAnalyzer<QuorumCheckerInterrupt>);
 // pub struct QuorumCheckerInterrupt(AsyncInterrupt);
@@ -1075,7 +1081,7 @@ impl QuorumCheckerInterrupt {
     }
 
     pub fn reset(&self) {
-        self.0.store(false, Ordering::SeqCst)        
+        self.0.store(false, Ordering::SeqCst)
     }
 }
 
@@ -1083,16 +1089,20 @@ pub(crate) fn create_quorum_checker_interrupt() -> Box<QuorumCheckerInterrupt> {
     Box::new(QuorumCheckerInterrupt::default())
 }
 // Bridge implementation functions
-pub(crate) fn create_quorum_checker(nodes: &Vec<CxxBuf>, quorum_set: &Vec<CxxBuf>, interrupt: &QuorumCheckerInterrupt) 
-    -> Result<Box<QuorumChecker>, Box<dyn std::error::Error>> 
-{
+pub(crate) fn create_quorum_checker(
+    nodes: &Vec<CxxBuf>,
+    quorum_set: &Vec<CxxBuf>,
+    interrupt: &QuorumCheckerInterrupt,
+) -> Result<Box<QuorumChecker>, Box<dyn std::error::Error>> {
     let fbas = Fbas::from_quorum_set_map_buf(nodes.iter(), quorum_set.iter())?;
     // println!("{:?}", interrupt.0);
     let solver = FbasAnalyzer::new(fbas, interrupt.clone()).unwrap();
     Ok(Box::new(QuorumChecker(solver)))
 }
 
-pub(crate) fn check_quorum_intersection(checker: &mut QuorumChecker) -> Result<QuorumCheckerStatus, Box<dyn std::error::Error>> {
+pub(crate) fn check_quorum_intersection(
+    checker: &mut QuorumChecker,
+) -> Result<QuorumCheckerStatus, Box<dyn std::error::Error>> {
     let status = match checker.0.solve() {
         stellar_quorum_checker::SolveStatus::SAT(_) => QuorumCheckerStatus::SAT,
         stellar_quorum_checker::SolveStatus::UNSAT => QuorumCheckerStatus::UNSAT,
@@ -1101,25 +1111,30 @@ pub(crate) fn check_quorum_intersection(checker: &mut QuorumChecker) -> Result<Q
     Ok(status)
 }
 
-pub(crate) fn interrupt_quorum_checker(interrupt: &QuorumCheckerInterrupt) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn interrupt_quorum_checker(
+    interrupt: &QuorumCheckerInterrupt,
+) -> Result<(), Box<dyn std::error::Error>> {
     interrupt.interrupt_async();
     Ok(())
 }
 
-pub(crate) fn reset_interrupt(interrupt: &QuorumCheckerInterrupt) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn reset_interrupt(
+    interrupt: &QuorumCheckerInterrupt,
+) -> Result<(), Box<dyn std::error::Error>> {
     interrupt.reset();
     Ok(())
 }
 
-
-pub(crate) fn print_interrupt_flag(interrupt: &QuorumCheckerInterrupt) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn print_interrupt_flag(
+    interrupt: &QuorumCheckerInterrupt,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("interrupt flag {:?}", interrupt.0);
     Ok(())
 }
 
-
-
-pub(crate) fn get_potential_quorum_split(checker: &QuorumChecker) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
+pub(crate) fn get_potential_quorum_split(
+    checker: &QuorumChecker,
+) -> Result<QuorumSplit, Box<dyn std::error::Error>> {
     let (left, right) = checker.0.get_potential_split();
     Ok(QuorumSplit { left, right })
 }

@@ -352,6 +352,7 @@
 
 #include "QuorumIntersectionChecker.h"
 #include "main/Config.h"
+#include "rust/RustBridge.h"
 #include "util/BitSet.h"
 #include "util/RandomEvictionCache.h"
 #include "util/TarjanSCCCalculator.h"
@@ -359,7 +360,6 @@
 #include "xdr/Stellar-types.h"
 #include <functional>
 #include <optional>
-#include "rust/RustBridge.h"
 
 namespace
 {
