@@ -13,6 +13,10 @@
 
 namespace stellar
 {
+
+// TODO: add more granular methods to manipulate the opeartion meta frame
+// instead of just `pushOperationMetas`, now the metas needs to be controlled in more fine grain
+
 TransactionMetaFrame::TransactionMetaFrame(uint32_t protocolVersion)
 {
     // The TransactionMeta v() switch can be in 4 positions 0, 1, 2, 3. We
@@ -181,6 +185,7 @@ TransactionMetaFrame::pushContractEvents(xdr::xvector<ContractEvent>&& events)
     case 3:
         mTransactionMeta.v3().sorobanMeta.activate().events = std::move(events);
         break;
+    // TODO: these should go into operation meta now
     default:
         releaseAssert(false);
     }
@@ -199,6 +204,7 @@ TransactionMetaFrame::pushDiagnosticEvents(
         mTransactionMeta.v3().sorobanMeta.activate().diagnosticEvents =
             std::move(events);
         break;
+    // TODO: these should go into operation meta now
     default:
         releaseAssert(false);
     }

@@ -136,6 +136,7 @@ class TransactionFrame : public TransactionFrameBase
     std::optional<TimeBounds const> const getTimeBounds() const;
     std::optional<LedgerBounds const> const getLedgerBounds() const;
     bool extraSignersExist() const;
+    Memo getMemo() const;
 
     bool validateSorobanOpsConsistency() const;
     bool validateSorobanResources(SorobanNetworkConfig const& config,

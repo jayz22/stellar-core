@@ -624,6 +624,21 @@ TransactionFrame::extraSignersExist() const
            !mEnvelope.v1().tx.cond.v2().extraSigners.empty();
 }
 
+Memo
+TransactionFrame::getMemo() const
+{
+    switch (mEnvelope.type())
+    {
+    case ENVELOPE_TYPE_TX_V0:
+        return mEnvelope.v0().tx.memo;
+    case ENVELOPE_TYPE_TX:
+        return mEnvelope.v1().tx.memo;
+    case ENVELOPE_TYPE_TX_FEE_BUMP:
+    default:
+        abort();
+    }
+}
+
 bool
 TransactionFrame::validateSorobanOpsConsistency() const
 {
@@ -1715,8 +1730,15 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
     {
         bool success = true;
 
+        // uint32_t ledgerVersion = ltxTx.loadHeader().current().ledgerVersion;
+        // if (protocolVersionStartsFrom(ledgerVersion, ProtocolVersion::V_23))
+        // {
+            
+        // }
+
         xdr::xvector<OperationMeta> operationMetas;
-        operationMetas.reserve(getNumOperations());
+        operationMetas.reserve(getNumOperations());    
+
 
         // shield outer scope of any side effects with LedgerTxn
         LedgerTxn ltxTx(ltx);
@@ -1750,12 +1772,14 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
             }
             ++opNum;
 
+            // TOOD: operationmeta needs to be threaded into the Operation frame now
             bool txRes = op->apply(app, signatureChecker, ltxOp, subSeed,
                                    opResult, txResult.getSorobanData());
 
             if (!txRes)
             {
                 success = false;
+                // TODO: why don't we return early here?? why do we compute the remaining operations??                
             }
 
             // The operation meta will be empty if the transaction
@@ -1763,6 +1787,7 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
             // case
             if (success)
             {
+                // This just checks the invariances and throw if they are not met. 
                 app.checkOnOperationApply(op->getOperation(), opResult,
                                           ltxOp.getDelta());
 
@@ -1780,6 +1805,12 @@ TransactionFrame::applyOperations(SignatureChecker& signatureChecker,
                 {
                     changes = ltxOp.getChanges();
                 }
+
+                // TODO: use operationMetas v2
+                // only populate all the events if all operations success?? 
+                // or still populate diagnostic events even if operations fail??
+
+
                 operationMetas.emplace_back(changes);
             }
 
