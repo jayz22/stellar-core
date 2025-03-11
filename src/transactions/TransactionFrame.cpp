@@ -272,6 +272,18 @@ TransactionFrame::getSourceID() const
     return toAccountID(mEnvelope.v1().tx.sourceAccount);
 }
 
+MuxedAccount
+TransactionFrame::getSourceAccount() const
+{
+    if (mEnvelope.type() == ENVELOPE_TYPE_TX_V0)
+    {
+        MuxedAccount acc(CryptoKeyType::KEY_TYPE_ED25519);
+        acc.ed25519() = mEnvelope.v0().tx.sourceAccountEd25519;
+        return acc;
+    }
+    return mEnvelope.v1().tx.sourceAccount;
+}
+
 uint32_t
 TransactionFrame::getNumOperations() const
 {

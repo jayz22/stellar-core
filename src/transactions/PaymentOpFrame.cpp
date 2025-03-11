@@ -46,14 +46,10 @@ PaymentOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
     if (instantSuccess)
     {
         innerResult(res).code(PAYMENT_SUCCESS);
-
         // TODO: if an event needs to happen here
         // ContractEvent event;
         // we don't need to check issuer for mint/burn event
         //contract: asset, topics: ["transfer", from:Address, to:Address, sep0011_asset:String], data: { amount:i128 }
-
-
-
         return true;
     }
 

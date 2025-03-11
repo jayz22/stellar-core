@@ -136,7 +136,6 @@ class TransactionFrame : public TransactionFrameBase
     std::optional<TimeBounds const> const getTimeBounds() const;
     std::optional<LedgerBounds const> const getLedgerBounds() const;
     bool extraSignersExist() const;
-    Memo getMemo() const;
 
     bool validateSorobanOpsConsistency() const;
     bool validateSorobanResources(SorobanNetworkConfig const& config,
@@ -189,6 +188,7 @@ class TransactionFrame : public TransactionFrameBase
 
     AccountID getFeeSourceID() const override;
     AccountID getSourceID() const override;
+    MuxedAccount getSourceAccount() const override;
 
     uint32_t getNumOperations() const override;
     Resource getResources(bool useByteLimitInClassic) const override;
@@ -290,6 +290,8 @@ class TransactionFrame : public TransactionFrameBase
         SorobanNetworkConfig const& sorobanConfig, Config const& cfg);
     virtual int64 declaredSorobanResourceFee() const override;
     virtual bool XDRProvidesValidFee() const override;
+
+    Memo getMemo() const;
 
 #ifdef BUILD_TESTS
     friend class TransactionTestFrame;
