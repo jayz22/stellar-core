@@ -918,6 +918,9 @@ LedgerManagerImpl::applyLedger(LedgerCloseData const& ledgerData,
     auto const mutableTxResults =
         processFeesSeqNums(*applicableTxSet, ltx, ledgerCloseMeta, ledgerData);
 
+
+
+
     // Subtle: after this call, `header` is invalidated, and is not safe to use
     auto txResultSet = applyTransactions(*applicableTxSet, mutableTxResults,
                                          ltx, ledgerCloseMeta);
@@ -1593,7 +1596,10 @@ LedgerManagerImpl::applyTransactions(
             auto mutableTxResult = mutableTxResults.at(resultIndex++);
 
             auto txTime = mLedgerApplyMetrics.mTransactionApply.TimeScope();
-            TransactionMetaFrame tm(ltx.loadHeader().current().ledgerVersion);
+            TransactionMetaFrame tm(
+                ltx.loadHeader().current().ledgerVersion,
+                mApp.getConfig().BACKFILL_STELLAR_ASSET_EVENTS);
+
             CLOG_DEBUG(Tx, " tx#{} = {} ops={} txseq={} (@ {})", index,
                        hexAbbrev(tx->getContentsHash()), tx->getNumOperations(),
                        tx->getSeqNum(),
@@ -1617,6 +1623,8 @@ LedgerManagerImpl::applyTransactions(
                       subSeed);
             tx->processPostApply(mApp.getAppConnector(), ltx, tm,
                                  mutableTxResult);
+
+            // TODO: push contract and diagnostic events to tx meta
 
             results.result = mutableTxResult->getResult();
             if (results.result.result.code() ==

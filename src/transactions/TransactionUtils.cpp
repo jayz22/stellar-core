@@ -1841,12 +1841,12 @@ validateContractLedgerEntry(LedgerKey const& lk, size_t entrySize,
                             SorobanNetworkConfig const& config,
                             Config const& appConfig,
                             TransactionFrame const& parentTx,
-                            SorobanTxData& sorobanData)
+                            EventManager& eventManager)
 {
     // check contract code size limit
     if (lk.type() == CONTRACT_CODE && config.maxContractSizeBytes() < entrySize)
     {
-        sorobanData.pushApplyTimeDiagnosticError(
+        eventManager.pushApplyTimeDiagnosticError(
             appConfig, SCE_BUDGET, SCEC_EXCEEDED_LIMIT,
             "Wasm size exceeds network config maximum contract size",
             {makeU64SCVal(entrySize),
@@ -1857,7 +1857,7 @@ validateContractLedgerEntry(LedgerKey const& lk, size_t entrySize,
     if (lk.type() == CONTRACT_DATA &&
         config.maxContractDataEntrySizeBytes() < entrySize)
     {
-        sorobanData.pushApplyTimeDiagnosticError(
+        eventManager.pushApplyTimeDiagnosticError(
             appConfig, SCE_BUDGET, SCEC_EXCEEDED_LIMIT,
             "ContractData size exceeds network config maximum size",
             {makeU64SCVal(entrySize),
@@ -1902,7 +1902,7 @@ getAssetContractID(Hash const& networkID, Asset const& asset)
     preImage.type(ENVELOPE_TYPE_CONTRACT_ID);
     preImage.contractID().networkID = networkID;
     preImage.contractID().contractIDPreimage.type(
-        CONTRACT_ID_PREIMAGE_FROM_ASSET);    
+        CONTRACT_ID_PREIMAGE_FROM_ASSET);
     preImage.contractID().contractIDPreimage.fromAsset() = asset;
     return xdrSha256(preImage);
 }
@@ -1959,7 +1959,8 @@ SCVal
 makeI128SCVal(int64_t v)
 {
     SCVal val(SCV_I128);
-    // Sign extend: if v is negative, hi = 0xFFFFFFFFFFFFFFFF, if positive, hi = 0x0000000000000000
+    // Sign extend: if v is negative, hi = 0xFFFFFFFFFFFFFFFF, if positive, hi =
+    // 0x0000000000000000
     val.i128().hi = v < 0 ? 0xFFFFFFFFFFFFFFFF : 0x0000000000000000;
     val.i128().lo = static_cast<uint64_t>(v);
     return val;
@@ -1976,7 +1977,8 @@ makeAccountIDSCVal(AccountID const& id)
 SCVal
 makeSep0011AssetStringSCVal(Asset const& asset)
 {
-    return makeStringSCVal(assetToString(asset) + ":" +  KeyUtils::toStrKey(getIssuer(asset)));
+    return makeStringSCVal(assetToString(asset) + ":" +
+                           KeyUtils::toStrKey(getIssuer(asset)));
 }
 
 SCVal

@@ -2,7 +2,6 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-#include "transactions/Event.h"
 #include "transactions/PathPaymentStrictSendOpFrame.h"
 #include "ledger/LedgerTxn.h"
 #include "ledger/LedgerTxnEntry.h"
@@ -33,7 +32,8 @@ PathPaymentStrictSendOpFrame::isOpSupported(LedgerHeader const& header) const
 bool
 PathPaymentStrictSendOpFrame::doApply(
     AppConnector& app, AbstractLedgerTxn& ltx, Hash const& sorobanBasePrngSeed,
-    OperationResult& res, std::shared_ptr<SorobanTxData> sorobanData) const
+    OperationResult& res, std::shared_ptr<SorobanTxData> sorobanData,
+    EventManager& eventManager) const
 {
     ZoneNamedN(applyZone, "PathPaymentStrictSendOp apply", true);
     std::string pathStr = assetToString(getSourceAsset());
@@ -95,7 +95,9 @@ PathPaymentStrictSendOpFrame::doApply(
         int64_t amountSend = 0;
         int64_t amountRecv = 0;
         std::vector<ClaimAtom> offerTrail;
-        // TODO: emit an event for each offer crossed, between the source account and the owner of the offer, asset being the "left side" of the trade
+        // TODO: emit an event for each offer crossed, between the source
+        // account and the owner of the offer, asset being the "left side" of
+        // the trade
         if (!convert(ltx, maxOffersToCross, sendAsset, maxAmountSend,
                      amountSend, recvAsset, INT64_MAX, amountRecv,
                      RoundingType::PATH_PAYMENT_STRICT_SEND, offerTrail, res))
@@ -125,10 +127,10 @@ PathPaymentStrictSendOpFrame::doApply(
     innerResult(res).success().last =
         SimplePaymentResult(getDestID(), getDestAsset(), maxAmountSend);
 
-    // Emit the final event between the source and destination account wrt the des asset. 
-    ContractEvent event = transfer(app.getNetworkID(), getDestAsset(), getSourceAccount(), getDestMuxedAccount(), maxAmountSend, mParentTx.getMemo());
-
-    // TODO: plumb it into meta
+    // Emit the final event between the source and destination account wrt the
+    // des asset.
+    eventManager.newTransferEvent(app.getNetworkID(), getDestAsset(), getSourceAccount(),
+                 getDestMuxedAccount(), maxAmountSend, mParentTx.getMemo());
 
     return true;
 }

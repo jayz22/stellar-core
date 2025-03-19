@@ -27,7 +27,8 @@ PaymentOpFrame::PaymentOpFrame(Operation const& op,
 bool
 PaymentOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
                         Hash const& sorobanBasePrngSeed, OperationResult& res,
-                        std::shared_ptr<SorobanTxData> sorobanData) const
+                        std::shared_ptr<SorobanTxData> sorobanData,
+                        EventManager& eventManager) const
 {
     ZoneNamedN(applyZone, "PaymentOp apply", true);
     std::string payStr = assetToString(mPayment.asset);
@@ -49,7 +50,8 @@ PaymentOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
         // TODO: if an event needs to happen here
         // ContractEvent event;
         // we don't need to check issuer for mint/burn event
-        //contract: asset, topics: ["transfer", from:Address, to:Address, sep0011_asset:String], data: { amount:i128 }
+        // contract: asset, topics: ["transfer", from:Address, to:Address,
+        // sep0011_asset:String], data: { amount:i128 }
         return true;
     }
 

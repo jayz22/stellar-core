@@ -11,24 +11,17 @@
 #include <iterator>
 #include <xdrpp/xdrpp/marshal.h>
 
-namespace stellar
+namespace
 {
-
-// TODO: add more granular methods to manipulate the opeartion meta frame
-// instead of just `pushOperationMetas`, now the metas needs to be controlled in more fine grain
-
-TransactionMetaFrame::TransactionMetaFrame(uint32_t protocolVersion)
+void
+setSorobanMetaFeeInfo(stellar::SorobanTransactionMetaExt& sorobanMetaExt,
+                      int64_t nonRefundableFeeSpent,
+                      int64_t totalRefundableFeeSpent, int64_t rentFeeCharged)
 {
-    // The TransactionMeta v() switch can be in 4 positions 0, 1, 2, 3. We
-    // do not support 0 or 1 at all -- core does not produce it anymore and we
-    // have no obligation to consume it under any circumstance -- so this
-    // class just switches between cases 2 and 3.
-    mVersion = 2;
-    if (protocolVersionStartsFrom(protocolVersion, SOROBAN_PROTOCOL_VERSION))
-    {
-        mVersion = 3;
-    }
-    mTransactionMeta.v(mVersion);
+    auto& ext = sorobanMetaExt.v1();
+    ext.totalNonRefundableResourceFeeCharged = nonRefundableFeeSpent;
+    ext.totalRefundableResourceFeeCharged = totalRefundableFeeSpent;
+    ext.rentFeeCharged = rentFeeCharged;
 }
 
 template <typename T>
@@ -36,6 +29,35 @@ void
 vecAppend(xdr::xvector<T>& a, xdr::xvector<T>&& b)
 {
     std::move(b.begin(), b.end(), std::back_inserter(a));
+}
+
+}
+
+namespace stellar
+{
+
+TransactionMetaFrame::TransactionMetaFrame(uint32_t protocolVersion,
+                                           bool backfillStellarAssetEvents)
+{
+    // The TransactionMeta v() switch can be in 5 positions 0, 1, 2, 3, 4. We do
+    // not support 0 or 1 at all -- core does not produce it anymore and we have
+    // no obligation to consume it under any circumstance -- so this class just
+    // switches between cases 2, 3 and 4.
+    if (protocolVersionStartsFrom(protocolVersion, ProtocolVersion::V_23) ||
+        backfillStellarAssetEvents)
+    {
+        mVersion = 4;
+    }
+    else if (protocolVersionStartsFrom(protocolVersion,
+                                       SOROBAN_PROTOCOL_VERSION))
+    {
+        mVersion = 3;
+    }
+    else
+    {
+        mVersion = 2;
+    }
+    mTransactionMeta.v(mVersion);
 }
 
 size_t
@@ -47,6 +69,8 @@ TransactionMetaFrame::getNumChangesBefore() const
         return mTransactionMeta.v2().txChangesBefore.size();
     case 3:
         return mTransactionMeta.v3().txChangesBefore.size();
+    case 4:
+        return mTransactionMeta.v4().txChangesBefore.size();
     default:
         releaseAssert(false);
     }
@@ -61,6 +85,8 @@ TransactionMetaFrame::getChangesBefore() const
         return mTransactionMeta.v2().txChangesBefore;
     case 3:
         return mTransactionMeta.v3().txChangesBefore;
+    case 4:
+        return mTransactionMeta.v4().txChangesBefore;
     default:
         releaseAssert(false);
     }
@@ -75,6 +101,8 @@ TransactionMetaFrame::getChangesAfter() const
         return mTransactionMeta.v2().txChangesAfter;
     case 3:
         return mTransactionMeta.v3().txChangesAfter;
+    case 4:
+        return mTransactionMeta.v4().txChangesAfter;
     default:
         releaseAssert(false);
     }
@@ -90,6 +118,9 @@ TransactionMetaFrame::pushTxChangesBefore(LedgerEntryChanges&& changes)
         break;
     case 3:
         vecAppend(mTransactionMeta.v3().txChangesBefore, std::move(changes));
+        break;
+    case 4:
+        vecAppend(mTransactionMeta.v4().txChangesBefore, std::move(changes));
         break;
     default:
         releaseAssert(false);
@@ -107,21 +138,31 @@ TransactionMetaFrame::clearOperationMetas()
     case 3:
         mTransactionMeta.v3().operations.clear();
         break;
+    case 4:
+        mTransactionMeta.v4().operations.clear();
+        break;
     default:
         releaseAssert(false);
     }
 }
 
 void
-TransactionMetaFrame::pushOperationMetas(xdr::xvector<OperationMeta>&& opMetas)
+TransactionMetaFrame::pushOperationMetas(
+    OperationMetaWrapper&& opMetas)
 {
     switch (mTransactionMeta.v())
     {
     case 2:
-        vecAppend(mTransactionMeta.v2().operations, std::move(opMetas));
+        vecAppend(mTransactionMeta.v2().operations,
+                  opMetas.convertToXDR());
         break;
     case 3:
-        vecAppend(mTransactionMeta.v3().operations, std::move(opMetas));
+        vecAppend(mTransactionMeta.v3().operations,
+                  opMetas.convertToXDR());
+        break;
+    case 4:
+        vecAppend(mTransactionMeta.v4().operations,
+                  opMetas.convertToXDRV2());
         break;
     default:
         releaseAssert(false);
@@ -137,6 +178,8 @@ TransactionMetaFrame::getNumOperations() const
         return mTransactionMeta.v2().operations.size();
     case 3:
         return mTransactionMeta.v3().operations.size();
+    case 4:
+        return mTransactionMeta.v4().operations.size();
     default:
         releaseAssert(false);
     }
@@ -152,6 +195,9 @@ TransactionMetaFrame::pushTxChangesAfter(LedgerEntryChanges&& changes)
         break;
     case 3:
         vecAppend(mTransactionMeta.v3().txChangesAfter, std::move(changes));
+        break;
+    case 4:
+        vecAppend(mTransactionMeta.v4().txChangesAfter, std::move(changes));
         break;
     default:
         releaseAssert(false);
@@ -169,13 +215,19 @@ TransactionMetaFrame::clearTxChangesAfter()
     case 3:
         mTransactionMeta.v3().txChangesAfter.clear();
         break;
+    case 4:
+        mTransactionMeta.v4().txChangesAfter.clear();
+        break;
     default:
         releaseAssert(false);
     }
 }
 
+// TODO: consolidate the events pushing at tx level and op level and
+// sorobantxmeta levels
+
 void
-TransactionMetaFrame::pushContractEvents(xdr::xvector<ContractEvent>&& events)
+TransactionMetaFrame::pushTxContractEvents(xdr::xvector<ContractEvent>&& events)
 {
     switch (mTransactionMeta.v())
     {
@@ -185,14 +237,16 @@ TransactionMetaFrame::pushContractEvents(xdr::xvector<ContractEvent>&& events)
     case 3:
         mTransactionMeta.v3().sorobanMeta.activate().events = std::move(events);
         break;
-    // TODO: these should go into operation meta now
+    case 4:
+        mTransactionMeta.v4().events = std::move(events);
+        break;
     default:
         releaseAssert(false);
     }
 }
 
 void
-TransactionMetaFrame::pushDiagnosticEvents(
+TransactionMetaFrame::pushTxDiagnosticEvents(
     xdr::xvector<DiagnosticEvent>&& events)
 {
     switch (mTransactionMeta.v())
@@ -204,7 +258,9 @@ TransactionMetaFrame::pushDiagnosticEvents(
         mTransactionMeta.v3().sorobanMeta.activate().diagnosticEvents =
             std::move(events);
         break;
-    // TODO: these should go into operation meta now
+    case 4:
+        mTransactionMeta.v4().txDiagnosticEvents = std::move(events);
+        break;
     default:
         releaseAssert(false);
     }
@@ -220,6 +276,10 @@ TransactionMetaFrame::setReturnValue(SCVal&& returnValue)
         break;
     case 3:
         mTransactionMeta.v3().sorobanMeta.activate().returnValue =
+            std::move(returnValue);
+        break;
+    case 4:
+        mTransactionMeta.v4().sorobanMeta.activate().returnValue =
             std::move(returnValue);
         break;
     default:
@@ -238,15 +298,15 @@ TransactionMetaFrame::setSorobanFeeInfo(int64_t nonRefundableFeeSpent,
         // Do nothing, until v3 we don't call into contracts.
         break;
     case 3:
-    {
-        auto& sorobanMeta = mTransactionMeta.v3().sorobanMeta.activate();
-        sorobanMeta.ext.v(1);
-        auto& ext = sorobanMeta.ext.v1();
-        ext.totalNonRefundableResourceFeeCharged = nonRefundableFeeSpent;
-        ext.totalRefundableResourceFeeCharged = totalRefundableFeeSpent;
-        ext.rentFeeCharged = rentFeeCharged;
+        setSorobanMetaFeeInfo(mTransactionMeta.v3().sorobanMeta.activate().ext,
+                              nonRefundableFeeSpent, totalRefundableFeeSpent,
+                              rentFeeCharged);
         break;
-    }
+    case 4:
+        setSorobanMetaFeeInfo(mTransactionMeta.v4().sorobanMeta.activate().ext,
+                              nonRefundableFeeSpent, totalRefundableFeeSpent,
+                              rentFeeCharged);
+        break;
     default:
         releaseAssert(false);
     }

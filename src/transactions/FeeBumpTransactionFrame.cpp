@@ -450,7 +450,7 @@ FeeBumpTransactionFrame::getSourceID() const
     return mInnerTx->getSourceID();
 }
 
-MuxedAccount 
+MuxedAccount
 FeeBumpTransactionFrame::getSourceAccount() const
 {
     return mInnerTx->getSourceAccount();

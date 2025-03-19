@@ -2,7 +2,6 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-#include "transactions/Event.h"
 #include "transactions/PathPaymentStrictReceiveOpFrame.h"
 #include "ledger/LedgerTxn.h"
 #include "ledger/LedgerTxnEntry.h"
@@ -26,7 +25,8 @@ PathPaymentStrictReceiveOpFrame::PathPaymentStrictReceiveOpFrame(
 bool
 PathPaymentStrictReceiveOpFrame::doApply(
     AppConnector& app, AbstractLedgerTxn& ltx, Hash const& sorobanBasePrngSeed,
-    OperationResult& res, std::shared_ptr<SorobanTxData> sorobanData) const
+    OperationResult& res, std::shared_ptr<SorobanTxData> sorobanData,
+    EventManager& eventManager) const
 {
     ZoneNamedN(applyZone, "PathPaymentStrictReceiveOp apply", true);
     std::string pathStr = assetToString(getSourceAsset());
@@ -133,9 +133,9 @@ PathPaymentStrictReceiveOpFrame::doApply(
         return false;
     }
 
-    // emit the event here. 
-    ContractEvent event = transfer(app.getNetworkID(), getSourceAsset(), getDestMuxedAccount(), getSourceAccount(), maxAmountRecv, mParentTx.getMemo());
-    // TODO: plumb it into meta
+    // emit the event here.
+    eventManager.newTransferEvent(app.getNetworkID(), getSourceAsset(), getDestMuxedAccount(),
+                getSourceAccount(), maxAmountRecv, mParentTx.getMemo());
 
     return true;
 }

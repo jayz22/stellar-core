@@ -18,12 +18,11 @@ namespace stellar
 class Config;
 class InternalLedgerEntry;
 class SorobanNetworkConfig;
+class EventManager;
 
 class SorobanTxData
 {
   private:
-    xdr::xvector<DiagnosticEvent> mDiagnosticEvents;
-    xdr::xvector<ContractEvent> mEvents;
     SCVal mReturnValue;
     // Size of the emitted Soroban events.
     uint32_t mConsumedContractEventsSizeBytes{};
@@ -32,37 +31,22 @@ class SorobanTxData
     int64_t mConsumedRentFee{};
     int64_t mConsumedRefundableFee{};
 
-    void pushDiagnosticEvent(DiagnosticEvent const& ecvt);
-
   public:
-    xdr::xvector<DiagnosticEvent> const& getDiagnosticEvents() const;
-
     bool consumeRefundableSorobanResources(
         uint32_t contractEventSizeBytes, int64_t rentFee,
         uint32_t protocolVersion, SorobanNetworkConfig const& sorobanConfig,
-        Config const& cfg, TransactionFrame const& tx);
+        Config const& cfg, TransactionFrame const& tx,
+        EventManager& eventManager);
 
     void setSorobanConsumedNonRefundableFee(int64_t);
     int64_t getSorobanFeeRefund() const;
     void setSorobanFeeRefund(int64_t fee);
 
-    void pushContractEvents(xdr::xvector<ContractEvent> const& evts);
     void setReturnValue(SCVal const& returnValue);
 
-    void pushDiagnosticEvents(xdr::xvector<DiagnosticEvent> const& evts);
-    void pushSimpleDiagnosticError(Config const& cfg, SCErrorType ty,
-                                   SCErrorCode code, std::string&& message,
-                                   xdr::xvector<SCVal>&& args);
-    void pushApplyTimeDiagnosticError(Config const& cfg, SCErrorType ty,
-                                      SCErrorCode code, std::string&& message,
-                                      xdr::xvector<SCVal>&& args = {});
-    void pushValidationTimeDiagnosticError(Config const& cfg, SCErrorType ty,
-                                           SCErrorCode code,
-                                           std::string&& message,
-                                           xdr::xvector<SCVal>&& args = {});
-    void publishSuccessDiagnosticsToMeta(TransactionMetaFrame& meta,
+    void publishSuccessMeta(TransactionMetaFrame& meta,
                                          Config const& cfg);
-    void publishFailureDiagnosticsToMeta(TransactionMetaFrame& meta,
+    void publishFailureMeta(TransactionMetaFrame& meta,
                                          Config const& cfg);
 };
 
@@ -95,6 +79,7 @@ class MutableTransactionResultBase : public NonMovableOrCopyable
     virtual std::shared_ptr<SorobanTxData> getSorobanData() = 0;
     virtual xdr::xvector<DiagnosticEvent> const&
     getDiagnosticEvents() const = 0;
+    virtual EventManager& getEventManager() = 0;
 
     virtual void refundSorobanFee(int64_t feeRefund,
                                   uint32_t ledgerVersion) = 0;
@@ -111,6 +96,7 @@ class MutableTransactionResult : public MutableTransactionResultBase
 {
   private:
     std::shared_ptr<SorobanTxData> mSorobanExtension;
+    EventManager mEventManager;
 
     MutableTransactionResult(TransactionFrame const& tx, int64_t feeCharged);
 
@@ -140,6 +126,7 @@ class MutableTransactionResult : public MutableTransactionResultBase
     OperationResult& getOpResultAt(size_t index) override;
     std::shared_ptr<SorobanTxData> getSorobanData() override;
     xdr::xvector<DiagnosticEvent> const& getDiagnosticEvents() const override;
+    EventManager& getEventManager() override;
 
     void refundSorobanFee(int64_t feeRefund, uint32_t ledgerVersion) override;
     bool isSuccess() const override;
@@ -186,6 +173,7 @@ class FeeBumpMutableTransactionResult : public MutableTransactionResultBase
     OperationResult& getOpResultAt(size_t index) override;
     std::shared_ptr<SorobanTxData> getSorobanData() override;
     xdr::xvector<DiagnosticEvent> const& getDiagnosticEvents() const override;
+    EventManager& getEventManager() override;
 
     void refundSorobanFee(int64_t feeRefund, uint32_t ledgerVersion) override;
     bool isSuccess() const override;
