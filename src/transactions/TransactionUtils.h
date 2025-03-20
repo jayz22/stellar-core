@@ -34,6 +34,7 @@ struct LedgerHeader;
 struct LedgerKey;
 struct TransactionEnvelope;
 struct MuxedAccount;
+class EventManager;
 
 template <typename IterType>
 std::pair<IterType, bool>

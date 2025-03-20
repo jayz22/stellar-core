@@ -110,7 +110,7 @@ ExtendFootprintTTLOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
 
         if (!validateContractLedgerEntry(lk, entrySize, sorobanConfig,
                                          app.getConfig(), mParentTx,
-                                         *sorobanData))
+                                         eventManager))
         {
             innerResult(res).code(EXTEND_FOOTPRINT_TTL_RESOURCE_LIMIT_EXCEEDED);
             return false;

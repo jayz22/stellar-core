@@ -40,7 +40,7 @@ OperationMetaWrapper::convertToXDRV2()
     result.reserve(mInner.size());
     for (auto const& inner : mInner)
     {
-        result.emplace_back(std::move(inner.mLeChanges), std::move(inner.mContractEvents), std::move(inner.mDiagnosticEvents));
+        result.emplace_back(ExtensionPoint(), std::move(inner.mLeChanges), std::move(inner.mContractEvents), std::move(inner.mDiagnosticEvents));
     }
     return result;
 }

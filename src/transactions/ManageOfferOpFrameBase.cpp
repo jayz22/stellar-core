@@ -215,7 +215,7 @@ bool
 ManageOfferOpFrameBase::doApply(
     AppConnector& app, AbstractLedgerTxn& ltxOuter,
     Hash const& sorobanBasePrngSeed, OperationResult& res,
-    std::shared_ptr<SorobanTxData> sorobanData) const
+    std::shared_ptr<SorobanTxData> sorobanData,EventManager& eventManager) const
 {
     ZoneNamedN(applyZone, "ManageOfferOp apply", true);
     std::string pairStr = assetToString(mSheep);

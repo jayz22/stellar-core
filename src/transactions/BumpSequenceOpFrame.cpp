@@ -39,7 +39,7 @@ bool
 BumpSequenceOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
                              Hash const& sorobanBasePrngSeed,
                              OperationResult& res,
-                             std::shared_ptr<SorobanTxData> sorobanData) const
+                             std::shared_ptr<SorobanTxData> sorobanData,EventManager& eventManager) const
 {
     ZoneNamedN(applyZone, "BumpSequenceOp apply", true);
     LedgerTxn ltxInner(ltx);

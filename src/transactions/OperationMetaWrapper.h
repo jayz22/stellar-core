@@ -19,6 +19,15 @@ class OperationMetaWrapper
         LedgerEntryChanges mLeChanges;
         xdr::xvector<ContractEvent> mContractEvents;
         xdr::xvector<DiagnosticEvent> mDiagnosticEvents;
+
+        OpMetaInner(LedgerEntryChanges&& lec,
+                   xdr::xvector<ContractEvent>&& ces,
+                   xdr::xvector<DiagnosticEvent>&& des)
+            : mLeChanges(lec)
+            , mContractEvents(ces)
+            , mDiagnosticEvents(des)
+        {
+        }
     };
 
     std::vector<OpMetaInner> mInner;

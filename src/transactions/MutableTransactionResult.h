@@ -7,6 +7,7 @@
 #include "transactions/FeeBumpTransactionFrame.h"
 #include "transactions/TransactionFrame.h"
 #include "transactions/TransactionFrameBase.h"
+#include "transactions/EventManager.h"
 #include "util/NonCopyable.h"
 #include "util/types.h"
 
@@ -18,7 +19,6 @@ namespace stellar
 class Config;
 class InternalLedgerEntry;
 class SorobanNetworkConfig;
-class EventManager;
 
 class SorobanTxData
 {

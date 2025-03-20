@@ -74,7 +74,7 @@ PaymentOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
     PathPaymentStrictReceiveOpFrame ppayment(op, mParentTx);
 
     if (!ppayment.doCheckValid(ledgerVersion, ppRes) ||
-        !ppayment.doApply(app, ltx, sorobanBasePrngSeed, ppRes, sorobanData))
+        !ppayment.doApply(app, ltx, sorobanBasePrngSeed, ppRes, sorobanData, eventManager))
     {
         if (ppRes.code() != opINNER)
         {

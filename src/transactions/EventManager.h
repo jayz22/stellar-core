@@ -46,10 +46,6 @@ class EventManager
                                          std::string&& message,
                                          xdr::xvector<SCVal>&& args);
         
-        void pushSimpleDiagnosticError(Config const& cfg, SCErrorType ty,
-                                    SCErrorCode code, std::string&& message,
-                                    xdr::xvector<SCVal>&& args);
-        
         void pushApplyTimeDiagnosticError(Config const& cfg, SCErrorType ty,
                                         SCErrorCode code, std::string&& message,
                                         xdr::xvector<SCVal>&& args = {});
@@ -66,11 +62,11 @@ class EventManager
         }
 
         xdr::xvector<ContractEvent>&& flushContractEvents() {
-            std::move(mContractEvents);
+            return std::move(mContractEvents);
         };
 
         xdr::xvector<DiagnosticEvent>&& flushDiagnosticEvents() {
-            std::move(mDiagnosticEvents);
+            return std::move(mDiagnosticEvents);
         };
 
 };

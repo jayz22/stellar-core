@@ -593,7 +593,7 @@ InvokeHostFunctionOpFrame::doApply(AppConnector& app, AbstractLedgerTxn& ltx,
         xdr::xdr_from_opaque(buf.data, le);
         if (!validateContractLedgerEntry(LedgerEntryKey(le), buf.data.size(),
                                          sorobanConfig, appConfig, mParentTx,
-                                         *sorobanData))
+                                         eventManager))
         {
             innerResult(res).code(INVOKE_HOST_FUNCTION_RESOURCE_LIMIT_EXCEEDED);
             return false;
