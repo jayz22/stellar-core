@@ -159,7 +159,9 @@ fromQuorumCheckerStatusJson(Json::Value const& value)
     }
 
     auto statusInt = value.asUInt();
-    if (statusInt > static_cast<unsigned>(QuorumCheckerStatus::UNKNOWN))
+    if (statusInt != static_cast<unsigned>(QuorumCheckerStatus::UNSAT) &&
+        statusInt != static_cast<unsigned>(QuorumCheckerStatus::SAT) &&
+        statusInt != static_cast<unsigned>(QuorumCheckerStatus::UNKNOWN))
     {
         throw RustQuorumCheckerError("Invalid status value: " +
                                      std::to_string(statusInt));

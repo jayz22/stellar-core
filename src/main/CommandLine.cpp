@@ -1453,14 +1453,14 @@ runCheckQuorumIntersection(CommandLineArgs const& args)
                 "check-quorum-intersection encountered an "
                 "error: Invalid public key in JSON file. JSON file must be "
                 "generated with the 'fullkeys' parameter set to 'true'.");
-            return -1;
+            return static_cast<int>(QuorumCheckerStatus::UNKNOWN);
         }
         catch (std::exception const& e)
         {
             CLOG_FATAL(SCP,
                        "check-quorum-intersection encountered an error: {}",
                        e.what());
-            return -1;
+            return static_cast<int>(QuorumCheckerStatus::UNKNOWN);
         }
     };
 
